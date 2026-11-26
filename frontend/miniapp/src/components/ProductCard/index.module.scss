@@ -1,0 +1,90 @@
+@use '@/styles/variables.scss' as *;
+
+.card {
+  width: 100%;
+  background: $color-bg-card;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  box-shadow: $shadow-card;
+  transition: all $transition-base;
+
+  &:active {
+    opacity: 0.92;
+    transform: scale(0.99);
+  }
+}
+
+.imageWrap {
+  position: relative;
+  width: 100%;
+  height: 320rpx;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+}
+
+.sales {
+  position: absolute;
+  left: 16rpx;
+  bottom: 16rpx;
+  padding: 4rpx 12rpx;
+  border-radius: $radius-round;
+  background: rgba(0, 0, 0, 0.45);
+  color: $color-text-white;
+  font-size: $font-size-xs;
+}
+
+.body {
+  padding: 16rpx;
+}
+
+.name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  min-height: 72rpx;
+  font-size: $font-size-md;
+  color: $color-text-primary;
+  line-height: $line-height-tight;
+}
+
+.tags {
+  display: flex;
+  gap: 8rpx;
+  margin-top: 10rpx;
+}
+
+.tag {
+  padding: 2rpx 10rpx;
+  border-radius: $radius-xs;
+  background: $color-bg-tint;
+  color: $color-primary;
+  font-size: 20rpx;
+}
+
+.priceRow {
+  display: flex;
+  align-items: baseline;
+  gap: 8rpx;
+  margin-top: 12rpx;
+}
+
+.priceSymbol {
+  color: $color-price;
+  font-size: $font-size-xs;
+}
+
+.price {
+  color: $color-price;
+  font-size: 36rpx;
+  font-weight: $font-weight-bold;
+}
+
+.original {
+  color: $color-text-disabled;
+  font-size: $font-size-xs;
+  text-decoration: line-through;
+}

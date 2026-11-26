@@ -1,0 +1,242 @@
+@use '@/styles/variables.scss' as *;
+
+.page {
+  min-height: 100vh;
+  padding: 32rpx $page-padding 60rpx;
+  box-sizing: border-box;
+  background: $color-bg-page;
+}
+
+.hero {
+  padding: 40rpx 32rpx;
+  border-radius: $radius-xl;
+  background: linear-gradient(135deg, $color-primary-dark 0%, $color-primary 60%, $color-primary-light 100%);
+  text-align: center;
+}
+
+.heroTitle {
+  color: $color-text-white;
+  font-size: 40rpx;
+  font-weight: $font-weight-bold;
+}
+
+.heroDesc {
+  margin-top: 10rpx;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: $font-size-xs;
+}
+
+.inputWrap {
+  margin-top: 28rpx;
+  padding: 0 20rpx;
+  height: 80rpx;
+  border-radius: $radius-button;
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
+  align-items: center;
+}
+
+.input {
+  flex: 1;
+  color: $color-text-primary;
+  font-size: $font-size-sm;
+}
+
+.verifyBtn {
+  @include button-reset;
+  height: 80rpx;
+  margin-top: 20rpx;
+  border-radius: $radius-button;
+  background: $color-text-white;
+  color: $color-primary;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+
+  &:active {
+    opacity: 0.9;
+  }
+}
+
+.samples {
+  display: flex;
+  justify-content: center;
+  gap: 20rpx;
+  margin-top: 20rpx;
+}
+
+.sample {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 20rpx;
+  text-decoration: underline;
+}
+
+.result {
+  margin-top: 24rpx;
+  padding: 28rpx;
+  border-radius: $radius-lg;
+  background: $color-bg-card;
+  box-shadow: $shadow-card;
+  border-left: 8rpx solid $color-success;
+
+  &.invalid {
+    border-left-color: $color-error;
+  }
+}
+
+.resultHead {
+  color: $color-success;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+
+  .invalid & {
+    color: $color-error;
+  }
+}
+
+.resultDesc {
+  margin-top: 8rpx;
+  color: $color-text-tertiary;
+  font-size: $font-size-xs;
+}
+
+.metaRow {
+  display: flex;
+  margin-top: 24rpx;
+  padding-top: 24rpx;
+  border-top: 1rpx solid $color-divider;
+}
+
+.metaItem {
+  flex: 1;
+}
+
+.metaLabel {
+  display: block;
+  color: $color-text-tertiary;
+  font-size: 20rpx;
+}
+
+.metaValue {
+  display: block;
+  margin-top: 6rpx;
+  color: $color-text-primary;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+}
+
+.product {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 24rpx;
+  padding: 24rpx;
+  border-radius: $radius-lg;
+  background: $color-bg-card;
+  box-shadow: $shadow-card;
+}
+
+.cover {
+  width: 150rpx;
+  height: 150rpx;
+  border-radius: $radius-md;
+  flex-shrink: 0;
+}
+
+.productInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.productName {
+  @include text-ellipsis;
+  color: $color-text-primary;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+}
+
+.productLine {
+  margin-top: 10rpx;
+  color: $color-text-tertiary;
+  font-size: $font-size-xs;
+}
+
+.timeline {
+  margin-top: 24rpx;
+  padding: 28rpx;
+  border-radius: $radius-lg;
+  background: $color-bg-card;
+  box-shadow: $shadow-card;
+}
+
+.sectionTitle {
+  color: $color-text-primary;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  margin-bottom: 20rpx;
+}
+
+.step {
+  display: flex;
+  gap: 18rpx;
+}
+
+.dotWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.dot {
+  width: 18rpx;
+  height: 18rpx;
+  margin-top: 8rpx;
+  border-radius: $radius-round;
+  background: $color-primary;
+
+  &.last {
+    background: $color-success;
+  }
+}
+
+.line {
+  flex: 1;
+  width: 4rpx;
+  margin: 6rpx 0;
+  background: #e8eefc;
+}
+
+.stepBody {
+  flex: 1;
+  padding-bottom: 28rpx;
+}
+
+.stepHead {
+  display: flex;
+  justify-content: space-between;
+}
+
+.stepName {
+  color: $color-text-primary;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+}
+
+.stepTime {
+  color: $color-text-tertiary;
+  font-size: 20rpx;
+}
+
+.stepLine {
+  margin-top: 6rpx;
+  color: $color-text-tertiary;
+  font-size: $font-size-xs;
+}
+
+.hint {
+  margin-top: 24rpx;
+  padding: 24rpx;
+  border-radius: $radius-md;
+  background: $color-bg-tint;
+  color: #6b7a99;
+  font-size: $font-size-xs;
+  line-height: $line-height-loose;
+}

@@ -1,0 +1,60 @@
+CREATE TABLE IF NOT EXISTS pay_record (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
+    pay_no VARCHAR(64) NOT NULL COMMENT '支付单号',
+    order_no VARCHAR(64) NOT NULL COMMENT '订单号',
+    tenant_id BIGINT NOT NULL COMMENT '租户ID',
+    user_id BIGINT NOT NULL COMMENT '用户ID',
+    pay_method INT NOT NULL COMMENT '支付方式：1-微信支付 2-支付宝 3-银行卡',
+    pay_amount DECIMAL(18,2) NOT NULL COMMENT '支付金额',
+    pay_status INT NOT NULL DEFAULT 0 COMMENT '支付状态：0-待支付 1-支付中 2-支付成功 3-支付失败 4-已退款',
+    third_pay_no VARCHAR(128) COMMENT '第三方支付单号',
+    pay_time DATETIME COMMENT '支付时间',
+    notify_data TEXT COMMENT '回调数据',
+    notify_count INT DEFAULT 0 COMMENT '回调次数',
+    notify_time DATETIME COMMENT '回调时间',
+    remark VARCHAR(500) COMMENT '备注',
+    create_time DATETIME NOT NULL COMMENT '创建时间',
+    update_time DATETIME NOT NULL COMMENT '更新时间',
+    deleted INT DEFAULT 0 COMMENT '逻辑删除',
+    INDEX idx_pay_no (pay_no),
+    INDEX idx_order_no (order_no),
+    INDEX idx_tenant_id (tenant_id),
+    INDEX idx_pay_status (pay_status),
+    UNIQUE KEY uk_pay_no (pay_no)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='支付记录表';
+
+CREATE TABLE IF NOT EXISTS tenant_pay_config (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
+    tenant_id BIGINT NOT NULL COMMENT '租户ID',
+    pay_method INT NOT NULL COMMENT '支付方式：1-微信支付 2-支付宝 3-银行卡',
+    config_key VARCHAR(128) NOT NULL COMMENT '配置键',
+    config_value TEXT COMMENT '配置值',
+    status INT DEFAULT 1 COMMENT '状态：0-禁用 1-启用',
+    create_time DATETIME NOT NULL COMMENT '创建时间',
+    update_time DATETIME NOT NULL COMMENT '更新时间',
+    deleted INT DEFAULT 0 COMMENT '逻辑删除',
+    INDEX idx_tenant_pay (tenant_id, pay_method),
+    INDEX idx_config_key (config_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='租户支付渠道配置表';
+
+CREATE TABLE IF NOT EXISTS refund_record (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
+    refund_no VARCHAR(64) NOT NULL COMMENT '退款单号',
+    pay_no VARCHAR(64) NOT NULL COMMENT '支付单号',
+    order_no VARCHAR(64) NOT NULL COMMENT '订单号',
+    tenant_id BIGINT NOT NULL COMMENT '租户ID',
+    refund_amount DECIMAL(18,2) NOT NULL COMMENT '退款金额',
+    refund_status INT NOT NULL DEFAULT 0 COMMENT '退款状态：0-待退款 1-退款中 2-退款成功 3-退款失败',
+    third_refund_no VARCHAR(128) COMMENT '第三方退款单号',
+    refund_time DATETIME COMMENT '退款时间',
+    refund_reason VARCHAR(500) COMMENT '退款原因',
+    remark VARCHAR(500) COMMENT '备注',
+    create_time DATETIME NOT NULL COMMENT '创建时间',
+    update_time DATETIME NOT NULL COMMENT '更新时间',
+    deleted INT DEFAULT 0 COMMENT '逻辑删除',
+    INDEX idx_refund_no (refund_no),
+    INDEX idx_pay_no (pay_no),
+    INDEX idx_order_no (order_no),
+    INDEX idx_tenant_id (tenant_id),
+    UNIQUE KEY uk_refund_no (refund_no)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='退款记录表';

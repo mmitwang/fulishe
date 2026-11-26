@@ -1,0 +1,314 @@
+@use '@/styles/variables.scss' as *;
+
+.page {
+  min-height: 100vh;
+  padding: 32rpx $page-padding 80rpx;
+  background: $color-bg-page;
+}
+
+.balanceCard {
+  position: relative;
+  overflow: hidden;
+  padding: 40rpx;
+  border-top: 4rpx solid $color-accent;
+  border-radius: $radius-md;
+  background: $color-primary-dark;
+  box-shadow: $shadow-card;
+  color: $color-text-white;
+
+  &::after {
+    position: absolute;
+    top: -120rpx;
+    right: -100rpx;
+    width: 360rpx;
+    height: 360rpx;
+    border: 1rpx solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    content: '';
+  }
+}
+
+.brandRow,
+.accountStats,
+.flowHeader,
+.flowItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand {
+  font-family: 'Songti SC', serif;
+  font-size: 40rpx;
+  font-weight: $font-weight-semibold;
+  letter-spacing: 4rpx;
+}
+
+.mockBadge {
+  z-index: 1;
+  padding: 8rpx 16rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.45);
+  border-radius: $radius-sm;
+  font-size: $font-size-xs;
+}
+
+.english,
+.balanceLabel,
+.balance {
+  display: block;
+}
+
+.english {
+  margin-top: 12rpx;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: $font-size-xs;
+  letter-spacing: 2rpx;
+}
+
+.balanceLabel {
+  margin-top: 48rpx;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: $font-size-sm;
+}
+
+.balance {
+  margin-top: 8rpx;
+  font-family: 'Songti SC', serif;
+  font-size: 72rpx;
+  font-weight: $font-weight-semibold;
+}
+
+.accountStats {
+  z-index: 1;
+  gap: 24rpx;
+  margin-top: 32rpx;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: $font-size-xs;
+}
+
+.operationCard,
+.flowCard,
+.errorCard {
+  margin-top: 24rpx;
+  padding: 32rpx;
+  border: 1rpx solid $color-border;
+  border-radius: $radius-lg;
+  background: $color-bg-card;
+}
+
+.panelTabs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16rpx;
+  margin-bottom: 32rpx;
+  padding: 8rpx;
+  border-radius: $radius-button;
+  background: $color-bg-page;
+}
+
+.panelTab {
+  min-height: 80rpx;
+  border: 1rpx solid transparent;
+  border-radius: $radius-button;
+  color: $color-text-secondary;
+  line-height: 80rpx;
+  text-align: center;
+}
+
+.panelTabActive {
+  background: $color-primary;
+  color: $color-text-white;
+  font-weight: $font-weight-semibold;
+}
+
+.sectionTitle {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+}
+
+.presetGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16rpx;
+  margin: 24rpx 0;
+}
+
+.preset {
+  min-height: $touch-target;
+  border: 1rpx solid $color-border;
+  border-radius: $radius-md;
+  color: $color-text-secondary;
+  line-height: $touch-target;
+  text-align: center;
+}
+
+.presetActive {
+  border-color: $color-primary;
+  background: $color-tag-bg;
+  color: $color-primary;
+  font-weight: $font-weight-semibold;
+}
+
+.fieldLabel {
+  display: block;
+  margin: 24rpx 0 12rpx;
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+}
+
+.input {
+  width: 100%;
+  min-height: 80rpx;
+  padding: 0 24rpx;
+  border: 1rpx solid $color-border;
+  border-radius: $radius-md;
+  box-sizing: border-box;
+  background: $color-bg-page;
+  font-size: $font-size-md;
+}
+
+.textarea {
+  min-height: 144rpx;
+  padding-top: 20rpx;
+  line-height: $line-height-normal;
+}
+
+.formNote {
+  display: block;
+  margin: 20rpx 0 28rpx;
+  color: $color-text-tertiary;
+  font-size: $font-size-xs;
+  line-height: $line-height-loose;
+}
+
+.primaryButton {
+  min-height: 88rpx;
+  border-radius: $radius-button;
+  background: $color-primary;
+  color: $color-text-white;
+  font-weight: $font-weight-semibold;
+  line-height: 88rpx;
+  text-align: center;
+}
+
+.disabled {
+  background: $color-text-disabled;
+}
+
+.flowCount,
+.flowMeta,
+.flowNo,
+.balanceAfter {
+  color: $color-text-tertiary;
+  font-size: $font-size-xs;
+}
+
+.flowItem {
+  align-items: flex-start;
+  padding: 28rpx 0;
+  border-bottom: 1rpx solid $color-divider;
+
+  &:last-child {
+    border-bottom: 0;
+  }
+}
+
+.flowMain {
+  flex: 1;
+  min-width: 0;
+}
+
+.flowTitle,
+.flowMeta,
+.flowNo,
+.flowAmount,
+.balanceAfter {
+  display: block;
+}
+
+.flowTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+}
+
+.flowMeta {
+  margin-top: 12rpx;
+}
+
+.flowNo {
+  margin-top: 8rpx;
+  word-break: break-all;
+}
+
+.flowAmountWrap {
+  flex: 0 0 auto;
+  margin-left: 24rpx;
+  text-align: right;
+}
+
+.flowAmount {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+}
+
+.income {
+  color: $color-success;
+}
+
+.expense {
+  color: $color-price;
+}
+
+.balanceAfter {
+  margin-top: 12rpx;
+}
+
+.empty {
+  display: block;
+  padding: 64rpx 0;
+  color: $color-text-tertiary;
+  text-align: center;
+}
+
+.errorCard {
+  display: flex;
+  justify-content: space-between;
+  color: $color-price;
+  font-size: $font-size-sm;
+}
+
+.retry {
+  flex: 0 0 auto;
+  margin-left: 24rpx;
+  color: $color-primary;
+}
+
+.footnote {
+  display: block;
+  padding: 32rpx 16rpx 0;
+  color: $color-text-tertiary;
+  font-size: $font-size-xs;
+  line-height: $line-height-loose;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .page {
+    @include content-container($page-max-width-narrow);
+    padding: 40PX $page-gutter-wide 80PX;
+  }
+
+  .balanceCard {
+    padding: 48PX;
+  }
+
+  .balance {
+    font-size: 56PX;
+  }
+
+  .operationCard,
+  .flowCard,
+  .errorCard {
+    padding: 32PX;
+  }
+}

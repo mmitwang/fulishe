@@ -1,0 +1,30 @@
+# 依赖与共享缓存
+node_modules/
+.pai/
+**/.pai/
+
+# 构建产物
+dist/
+**/dist/
+.vite/
+**/.vite/
+target/
+**/target/
+playwright-report/
+test-results/
+
+# 日志与系统临时文件
+*.log
+*.baiduyun.uploading.cfg
+.DS_Store
+Thumbs.db
+
+# 本地环境与密钥（如后续新增，勿提交）
+.env
+.env.*
+*.pem
+*.p12
+*.key
+*.jks
+*.keystore
+application-local.yml

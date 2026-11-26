@@ -1,0 +1,183 @@
+@use '@/styles/variables.scss' as *;
+
+.page {
+  min-height: 100vh;
+  padding: 24rpx $page-padding 200rpx;
+  box-sizing: border-box;
+  background: $color-bg-page;
+}
+
+.tip {
+  margin-bottom: 20rpx;
+  color: $color-text-tertiary;
+  font-size: $font-size-xs;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  border-radius: $radius-lg;
+  background: $color-bg-card;
+  box-shadow: $shadow-card;
+}
+
+.check {
+  width: 40rpx;
+  height: 40rpx;
+  border: 2rpx solid $color-border;
+  border-radius: $radius-round;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &.checked {
+    border-color: $color-primary;
+    background: $color-primary;
+  }
+}
+
+.checkMark {
+  color: $color-text-white;
+  font-size: 24rpx;
+}
+
+.cover {
+  width: 160rpx;
+  height: 160rpx;
+  margin-left: 20rpx;
+  border-radius: $radius-md;
+  flex-shrink: 0;
+}
+
+.info {
+  flex: 1;
+  margin-left: 20rpx;
+  min-width: 0;
+}
+
+.name {
+  @include text-ellipsis;
+  color: $color-text-primary;
+  font-size: $font-size-md;
+}
+
+.sku {
+  margin-top: 8rpx;
+  color: $color-text-tertiary;
+  font-size: $font-size-xs;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20rpx;
+}
+
+.price {
+  color: $color-price;
+  font-size: 32rpx;
+  font-weight: $font-weight-bold;
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  border: 1rpx solid $color-border;
+  border-radius: $radius-sm;
+  overflow: hidden;
+}
+
+.stepBtn {
+  @include button-reset;
+  width: 52rpx;
+  height: 48rpx;
+  background: $color-bg-page;
+  color: $color-text-secondary;
+  font-size: 28rpx;
+
+  &:active {
+    background: $color-bg-hover;
+  }
+}
+
+.stepValue {
+  width: 72rpx;
+  height: 48rpx;
+  line-height: 48rpx;
+  text-align: center;
+  color: $color-text-primary;
+  font-size: $font-size-sm;
+}
+
+.footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  height: 112rpx;
+  padding: 0 $page-padding;
+  background: $color-bg-card;
+  box-shadow: $shadow-float;
+}
+
+.total {
+  flex: 1;
+  color: $color-text-secondary;
+  font-size: $font-size-xs;
+}
+
+.amount {
+  color: $color-price;
+  font-size: 38rpx;
+  font-weight: $font-weight-bold;
+}
+
+.payBtn {
+  @include button-reset;
+  height: $button-height-md;
+  padding: 0 48rpx;
+  border-radius: $radius-button;
+  background: linear-gradient(90deg, $color-primary, $color-primary-light);
+  color: $color-text-white;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+
+  &:active {
+    opacity: 0.9;
+  }
+
+  &.disabled {
+    background: $color-text-disabled;
+  }
+}
+
+.empty {
+  padding: 160rpx 0;
+  text-align: center;
+  color: $color-text-tertiary;
+  font-size: $font-size-md;
+}
+
+.emptyBtn {
+  @include button-reset;
+  height: $button-height-md;
+  margin: 32rpx auto 0;
+  padding: 0 56rpx;
+  border-radius: $radius-button;
+  background: $color-primary;
+  color: $color-text-white;
+  font-size: $font-size-md;
+}
+
+.remove {
+  margin-left: 16rpx;
+  color: $color-text-tertiary;
+  font-size: $font-size-xs;
+}

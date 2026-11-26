@@ -1,0 +1,60 @@
+@use '@/styles/compat.scss';
+@use '@/styles/variables.scss' as *;
+
+page {
+  color: $color-text-primary;
+  background: $color-bg-page;
+  font-family: 'PingFang SC', 'Noto Sans CJK SC', 'Microsoft YaHei', sans-serif;
+  font-size: $font-size-md;
+  line-height: $line-height-normal;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+view,
+text,
+image,
+button,
+input,
+textarea,
+scroll-view {
+  box-sizing: border-box;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  @include button-reset;
+}
+
+/* #ifdef h5 */
+:focus-visible {
+  outline: 3PX solid $color-focus;
+  outline-offset: 3PX;
+}
+
+::selection {
+  background: $color-tag-bg;
+  color: $color-primary-dark;
+}
+/* #endif */
+
+@media (prefers-reduced-motion: reduce) {
+  view,
+  text,
+  image,
+  button,
+  input,
+  textarea,
+  scroll-view,
+  swiper {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

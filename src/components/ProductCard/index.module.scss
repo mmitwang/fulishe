@@ -1,0 +1,136 @@
+@use '@/styles/variables.scss' as *;
+
+.card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border: 1rpx solid $color-border;
+  border-radius: $radius-md;
+  background: $color-bg-card;
+  transition: border-color $transition-base, box-shadow $transition-base, transform $transition-base;
+
+  &:active {
+    background: $color-accent-soft;
+    transform: scale(0.99);
+  }
+}
+
+.imageWrap {
+  position: relative;
+  width: 100%;
+  height: 0;
+  padding-top: 100%;
+  overflow: hidden;
+  background: $color-skeleton;
+}
+
+.image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.badge {
+  position: absolute;
+  top: 16rpx;
+  left: 16rpx;
+  padding: 8rpx 16rpx;
+  border-radius: $radius-xs;
+  background: rgba(255, 253, 249, 0.9);
+  color: $color-primary-dark;
+  font-size: $font-size-xs;
+  white-space: nowrap;
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 24rpx;
+}
+
+.name {
+  display: block;
+  min-height: 80rpx;
+  color: $color-text-primary;
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  line-height: 1.45;
+  @include text-ellipsis-multi(2);
+}
+
+.brand {
+  display: block;
+  margin-top: 16rpx;
+  color: $color-text-tertiary;
+  font-size: $font-size-xs;
+  @include text-ellipsis;
+}
+
+.priceRow {
+  display: flex;
+  align-items: baseline;
+  margin-top: auto;
+  padding-top: 24rpx;
+  color: $color-price;
+}
+
+.currency {
+  margin-right: 4rpx;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+}
+
+.price {
+  font-size: 38rpx;
+  font-weight: $font-weight-bold;
+}
+
+.original {
+  margin-left: 16rpx;
+  color: $color-text-tertiary;
+  font-size: $font-size-xs;
+  text-decoration: line-through;
+  @include text-ellipsis;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card:hover {
+    border-color: rgba(165, 42, 42, 0.32);
+    box-shadow: $shadow-card;
+    transform: translateY(-4rpx);
+  }
+}
+
+@media (min-width: 768px) {
+  .body {
+    padding: 20PX;
+  }
+
+  .name {
+    min-height: 46PX;
+    font-size: 16PX;
+  }
+
+  .brand {
+    font-size: 12PX;
+  }
+
+  .price {
+    font-size: 26PX;
+  }
+}
+
+@include reduced-motion {
+  .card {
+    transition: none;
+
+    &:active,
+    &:hover {
+      transform: none;
+    }
+  }
+}

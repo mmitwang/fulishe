@@ -1,0 +1,143 @@
+@use '@/styles/variables.scss' as *;
+
+.page {
+  min-height: 100vh;
+  padding: 24rpx $page-padding 48rpx;
+  background: $color-bg-page;
+}
+
+.searchBar {
+  display: flex;
+  align-items: center;
+  height: $touch-target;
+  padding: 0 24rpx;
+  border: 1rpx solid $color-border;
+  border-radius: $radius-button;
+  background: $color-bg-card;
+}
+
+.searchIcon {
+  margin-right: 16rpx;
+  color: $color-primary;
+  font-size: 30rpx;
+}
+
+.searchInput {
+  flex: 1;
+  height: 80rpx;
+  color: $color-text-primary;
+  font-size: $font-size-sm;
+}
+
+.searchAction {
+  display: flex;
+  align-items: center;
+  min-width: 96rpx;
+  min-height: $touch-target;
+  padding-left: 16rpx;
+  color: $color-primary;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.categoryScroll {
+  margin-top: 24rpx;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  @include scroll-x-container;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.categoryItem {
+  @include scroll-x-item(auto);
+  min-width: 144rpx;
+  height: 80rpx;
+  margin-right: 16rpx;
+  padding: 0 28rpx;
+  border: 1rpx solid $color-border;
+  border-radius: $radius-button;
+  background: $color-bg-card;
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+  line-height: 80rpx;
+  text-align: center;
+  white-space: nowrap;
+
+  &:active {
+    opacity: 0.85;
+  }
+}
+
+.active {
+  border-color: $color-primary;
+  background: $color-primary;
+  color: $color-text-white;
+  font-weight: $font-weight-semibold;
+  box-shadow: inset 0 0 0 1rpx rgba(255, 255, 255, 0.2);
+}
+
+.resultMeta {
+  display: flex;
+  justify-content: space-between;
+  margin: 32rpx 0 24rpx;
+  color: $color-text-tertiary;
+  font-size: $font-size-xs;
+}
+
+.resultTitle {
+  color: $color-text-primary;
+  font-family: 'Songti SC', serif;
+  font-size: 34rpx;
+  font-weight: $font-weight-semibold;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24rpx;
+}
+
+.state {
+  padding: 64rpx 0;
+  color: $color-text-tertiary;
+  font-size: $font-size-sm;
+  text-align: center;
+}
+
+.loadMore {
+  padding: 32rpx 0 16rpx;
+  color: $color-text-tertiary;
+  font-size: $font-size-xs;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .page {
+    @include content-container;
+    padding: 40PX $page-gutter-wide 64PX;
+  }
+
+  .searchBar {
+    max-width: 720PX;
+    height: 56PX;
+  }
+
+  .searchInput {
+    height: 56PX;
+  }
+
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1200px) {
+  .grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

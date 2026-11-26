@@ -1,0 +1,141 @@
+@use '@/styles/variables.scss' as *;
+
+.page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: $color-bg-page;
+}
+
+.searchBar {
+  padding: 20rpx $page-padding;
+  background: $color-bg-card;
+}
+
+.searchInput {
+  height: 68rpx;
+  padding: 0 28rpx;
+  border-radius: $radius-button;
+  background: $color-bg-page;
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+}
+
+.body {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+.side {
+  width: 176rpx;
+  height: 100%;
+  background: #f7f8fc;
+}
+
+.sideItem {
+  position: relative;
+  padding: 28rpx 12rpx;
+  color: $color-text-secondary;
+  font-size: $font-size-xs;
+  text-align: center;
+
+  &.active {
+    background: $color-bg-card;
+    color: $color-primary;
+    font-weight: $font-weight-semibold;
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 22rpx;
+      bottom: 22rpx;
+      width: 6rpx;
+      border-radius: 3rpx;
+      background: $color-primary;
+    }
+  }
+}
+
+.list {
+  flex: 1;
+  height: 100%;
+  padding: 16rpx 24rpx;
+  box-sizing: border-box;
+}
+
+.productItem {
+  display: flex;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+  border-radius: $radius-lg;
+  background: $color-bg-card;
+  box-shadow: $shadow-card;
+
+  &:active {
+    opacity: 0.94;
+  }
+}
+
+.cover {
+  width: 180rpx;
+  height: 180rpx;
+  border-radius: $radius-md;
+  flex-shrink: 0;
+}
+
+.info {
+  flex: 1;
+  margin-left: 20rpx;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.name {
+  @include text-ellipsis-multi(2);
+  color: $color-text-primary;
+  font-size: $font-size-md;
+  line-height: $line-height-tight;
+}
+
+.brand {
+  margin-top: 10rpx;
+  color: $color-text-tertiary;
+  font-size: $font-size-xs;
+}
+
+.bottom {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.price {
+  color: $color-price;
+  font-size: 34rpx;
+  font-weight: $font-weight-bold;
+}
+
+.addBtn {
+  @include button-reset;
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: $radius-round;
+  background: $color-primary;
+  color: $color-text-white;
+  font-size: 32rpx;
+
+  &:active {
+    opacity: 0.85;
+  }
+}
+
+.empty {
+  padding: 80rpx 0;
+  text-align: center;
+  color: $color-text-tertiary;
+  font-size: $font-size-sm;
+}

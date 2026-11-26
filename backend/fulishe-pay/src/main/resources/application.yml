@@ -1,0 +1,42 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: fulishe-pay
+  datasource:
+    url: jdbc:mysql://localhost:3306/fulishe?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&allowMultiQueries=true
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+        namespace: public
+      config:
+        server-addr: localhost:8848
+        namespace: public
+        file-extension: yaml
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+pay:
+  wechat:
+    app-id: wx1234567890abcdef
+    mch-id: 1234567890
+    api-key: your_wechat_api_key_here
+    notify-url: http://localhost:8085/pay/wechat/notify
+  alipay:
+    app-id: 2021000000000000
+    private-key: your_alipay_private_key
+    public-key: your_alipay_public_key
+    notify-url: http://localhost:8085/pay/alipay/notify

@@ -1,0 +1,241 @@
+@use '@/styles/variables.scss' as *;
+
+.page {
+  min-height: 100vh;
+  padding: 24rpx $page-padding 176rpx;
+  background: $color-bg-page;
+}
+
+.summary {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 24rpx;
+  color: $color-text-tertiary;
+  font-size: $font-size-sm;
+}
+
+.selectAll {
+  color: $color-primary;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24rpx;
+  padding: 24rpx;
+  border: 1rpx solid $color-border;
+  border-radius: $radius-lg;
+  background: $color-bg-card;
+}
+
+.checkbox {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 48rpx;
+  height: 48rpx;
+  margin-right: 16rpx;
+  border: 2rpx solid $color-text-disabled;
+  border-radius: 50%;
+  color: $color-text-white;
+  font-size: $font-size-sm;
+}
+
+.checked {
+  border-color: $color-primary;
+  background: $color-primary;
+}
+
+.cover {
+  flex: 0 0 auto;
+  width: 168rpx;
+  height: 168rpx;
+  border-radius: $radius-md;
+  background: $color-bg-hover;
+}
+
+.info {
+  flex: 1;
+  min-width: 0;
+  margin-left: 24rpx;
+}
+
+.name {
+  display: block;
+  font-size: $font-size-md;
+  font-weight: $font-weight-medium;
+  @include text-ellipsis-multi(2);
+}
+
+.sku {
+  display: block;
+  margin-top: 8rpx;
+  color: $color-text-tertiary;
+  font-size: $font-size-xs;
+  @include text-ellipsis;
+}
+
+.bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 24rpx;
+}
+
+.price {
+  color: $color-price;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  border: 1rpx solid $color-border;
+  border-radius: $radius-sm;
+}
+
+.stepButton {
+  width: 72rpx;
+  height: 72rpx;
+  color: $color-text-secondary;
+  font-size: 32rpx;
+  line-height: 72rpx;
+  text-align: center;
+
+  &:active {
+    background: $color-bg-hover;
+  }
+}
+
+.quantity {
+  min-width: 48rpx;
+  color: $color-text-primary;
+  font-size: $font-size-sm;
+  text-align: center;
+}
+
+.remove {
+  display: inline-block;
+  margin-top: 16rpx;
+  padding: 8rpx 0;
+  color: $color-text-tertiary;
+  font-size: $font-size-xs;
+}
+
+.footer {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 10;
+  padding: 20rpx $page-padding calc(20rpx + env(safe-area-inset-bottom));
+  border-top: 1rpx solid $color-border;
+  background: rgba(255, 253, 249, 0.98);
+  box-shadow: $shadow-float;
+}
+
+.footerInner {
+  @include content-container;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24rpx;
+}
+
+/*  #ifdef  h5  */
+/* H5 端页面内 tabBar 与 fixed footer 重叠，抬高避让（小程序原生 tabBar 自动避让，不受影响） */
+.page {
+  padding-bottom: 320rpx;
+}
+
+.footer {
+  bottom: 110rpx;
+}
+/*  #endif  */
+
+.totalLabel {
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+}
+
+.totalPrice {
+  display: block;
+  margin-top: 4rpx;
+  color: $color-price;
+  font-size: 38rpx;
+  font-weight: $font-weight-bold;
+}
+
+.checkoutButton {
+  min-width: 224rpx;
+  height: 88rpx;
+  border-radius: $radius-button;
+  background: $color-primary;
+  color: $color-text-white;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  line-height: 88rpx;
+  text-align: center;
+  white-space: nowrap;
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+}
+
+.disabled {
+  background: $color-text-disabled;
+}
+
+.empty {
+  padding: 144rpx 32rpx;
+  color: $color-text-tertiary;
+  text-align: center;
+}
+
+.emptyMark {
+  display: block;
+  color: $color-accent;
+  font-family: 'Songti SC', serif;
+  font-size: 80rpx;
+}
+
+.emptyText {
+  display: block;
+  margin-top: 24rpx;
+  font-size: $font-size-md;
+}
+
+.emptyButton {
+  width: 240rpx;
+  min-height: $touch-target;
+  margin: 40rpx auto 0;
+  border: 1rpx solid $color-primary;
+  border-radius: $radius-button;
+  color: $color-primary;
+  line-height: $touch-target;
+}
+
+@media (min-width: 768px) {
+  .page {
+    @include content-container($page-max-width-narrow);
+    padding: 40PX $page-gutter-wide 220PX;
+  }
+
+  .item {
+    padding: 28PX;
+  }
+
+  .footer {
+    padding: 20PX $page-gutter-wide calc(20PX + env(safe-area-inset-bottom));
+  }
+
+  .checkoutButton {
+    min-width: 220PX;
+    height: 52PX;
+    line-height: 52PX;
+  }
+}
