@@ -150,6 +150,14 @@ const MinePage: React.FC = () => {
       </View>
 
       <View className={styles.menuCard}>
+        <View className={styles.menuRow} onClick={() => Taro.navigateTo({ url: '/pages/address/index' })}>
+          <Text className={styles.menuIcon}>址</Text>
+          <View className={styles.menuBody}>
+            <Text className={styles.menuTitle}>收货地址</Text>
+            <Text className={styles.menuDescription}>管理家庭、公司地址与默认收货方式</Text>
+          </View>
+          <Text className={styles.menuArrow}>›</Text>
+        </View>
         {isOperator(user) && (
           <View className={styles.menuRow} onClick={() => Taro.navigateTo({ url: '/pages/ops/index' })}>
             <Text className={styles.menuIcon}>营</Text>

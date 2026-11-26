@@ -23,6 +23,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onTap }) => (
     <View className={styles.body}>
       <Text className={styles.name}>{product.spuName}</Text>
       <Text className={styles.brand}>{product.brandName} · 已售 {product.sales}</Text>
+      <Text className={styles.deliveryTag}>{product.deliveryTag}</Text>
       <View className={styles.priceRow}>
         <Text className={styles.currency}>¥</Text>
         <Text className={styles.price}>{product.sellPrice}</Text>

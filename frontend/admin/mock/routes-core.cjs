@@ -237,11 +237,22 @@ module.exports = function registerCoreRoutes(app, jwt, SECRET_KEY) {
 
   /* ---------------- 商品 ---------------- */
   app.get('/api/product/spu/page', (req, res) => {
-    let list = [...products]
-    if (req.query.spuName) list = list.filter(p => like(p.spuName, req.query.spuName))
+    const withDelivery = product => ({
+      ...product,
+      deliveryTag: product.deliveryTag || (product.categoryId === 1 ? '电子卡券 · 即时到账' : [2, 3, 4, 6].includes(product.categoryId) ? '最快 30 分钟达' : '今日发货 · 预计明日达')
+    })
+    let list = products.map(withDelivery)
+    if (req.query.spuName) {
+      list = list.filter(p => [p.spuName, p.brandName, p.categoryName, p.description].some(value => like(value, req.query.spuName)))
+    }
     if (!numEq(null, req.query.categoryId)) list = list.filter(p => numEq(p.categoryId, req.query.categoryId))
     if (!numEq(null, req.query.brandId)) list = list.filter(p => numEq(p.brandId, req.query.brandId))
     if (!numEq(null, req.query.status)) list = list.filter(p => numEq(p.status, req.query.status))
+    if (req.query.instant === '1') list = list.filter(p => p.deliveryTag.includes('30 分钟') || p.deliveryTag.includes('即时'))
+    if (req.query.sort === 'sales') list.sort((a, b) => b.sales - a.sales)
+    if (req.query.sort === 'priceAsc') list.sort((a, b) => a.sellPrice - b.sellPrice)
+    if (req.query.sort === 'priceDesc') list.sort((a, b) => b.sellPrice - a.sellPrice)
+    if (req.query.sort === 'newest') list.sort((a, b) => b.id - a.id)
     ok(res, paginate(list, req.query))
   })
   app.post('/api/product/spu', (req, res) => {
@@ -278,7 +289,10 @@ module.exports = function registerCoreRoutes(app, jwt, SECRET_KEY) {
   app.get('/api/product/spu/:id', (req, res) => {
     const product = products.find(item => item.id === Number(req.params.id))
     if (!product) return fail(res, '商品不存在', 404)
-    ok(res, product)
+    ok(res, {
+      ...product,
+      deliveryTag: product.deliveryTag || (product.categoryId === 1 ? '电子卡券 · 即时到账' : [2, 3, 4, 6].includes(product.categoryId) ? '最快 30 分钟达' : '今日发货 · 预计明日达')
+    })
   })
   app.get('/api/product/sku/spu/:spuId', (req, res) => {
     ok(res, skus.filter(item => numEq(item.spuId, req.params.spuId)))

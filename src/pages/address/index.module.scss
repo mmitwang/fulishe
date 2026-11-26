@@ -1,0 +1,199 @@
+@use '@/styles/variables.scss' as *;
+
+.page {
+  min-height: 100vh;
+  padding: 24rpx $page-padding 64rpx;
+  background: $color-bg-page;
+}
+
+.modeTip {
+  margin-bottom: 24rpx;
+  padding: 20rpx 24rpx;
+  border-radius: $radius-md;
+  background: $color-primary-soft;
+  color: $color-primary-dark;
+  font-size: $font-size-sm;
+}
+
+.addressCard,
+.editorCard {
+  margin-bottom: 24rpx;
+  padding: 32rpx;
+  border: 1rpx solid $color-border;
+  border-radius: $radius-lg;
+  background: $color-bg-card;
+}
+
+.addressHead {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.receiver {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+}
+
+.mobile {
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+}
+
+.addressTag,
+.defaultBadge {
+  padding: 4rpx 12rpx;
+  border-radius: $radius-xs;
+  background: $color-tag-bg;
+  color: $color-text-secondary;
+  font-size: $font-size-xs;
+}
+
+.defaultBadge {
+  background: $color-primary-soft;
+  color: $color-primary;
+}
+
+.addressText {
+  display: block;
+  margin-top: 24rpx;
+  color: $color-text-primary;
+  font-size: $font-size-md;
+  line-height: $line-height-loose;
+}
+
+.addressActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 32rpx;
+  margin-top: 24rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid $color-divider;
+}
+
+.action {
+  padding: 12rpx 0;
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+}
+
+.deleteAction {
+  color: $color-text-tertiary;
+}
+
+.addButton,
+.saveButton {
+  height: 88rpx;
+  border-radius: $radius-button;
+  background: $color-primary;
+  color: $color-text-white;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  line-height: 88rpx;
+  text-align: center;
+}
+
+.addButton {
+  margin-top: 32rpx;
+}
+
+.empty {
+  padding: 128rpx 0;
+  color: $color-text-tertiary;
+  font-size: $font-size-sm;
+  text-align: center;
+}
+
+.editorHead,
+.defaultRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.editorHead {
+  margin-bottom: 24rpx;
+}
+
+.editorTitle {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+}
+
+.cancelButton {
+  padding: 16rpx 0 16rpx 24rpx;
+  color: $color-text-tertiary;
+  font-size: $font-size-sm;
+}
+
+.formRow {
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid $color-divider;
+}
+
+.formLabel {
+  display: block;
+  margin-bottom: 16rpx;
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+}
+
+.input {
+  width: 100%;
+  min-height: 72rpx;
+  padding: 0 24rpx;
+  border: 1rpx solid $color-border;
+  border-radius: $radius-md;
+  background: $color-bg-page;
+  box-sizing: border-box;
+  font-size: $font-size-md;
+}
+
+.textarea {
+  min-height: 144rpx;
+  padding: 24rpx;
+  line-height: $line-height-normal;
+}
+
+.tagList {
+  display: flex;
+  gap: 20rpx;
+}
+
+.tagOption {
+  min-width: 112rpx;
+  padding: 16rpx 24rpx;
+  border: 1rpx solid $color-border;
+  border-radius: $radius-button;
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+  text-align: center;
+}
+
+.tagActive {
+  border-color: $color-primary;
+  background: $color-primary-soft;
+  color: $color-primary;
+}
+
+.defaultRow {
+  min-height: 96rpx;
+  color: $color-text-secondary;
+  font-size: $font-size-md;
+}
+
+.saveButton {
+  margin-top: 24rpx;
+}
+
+.disabled {
+  background: $color-text-disabled;
+}
+
+@media (min-width: 768px) {
+  .page {
+    @include content-container($page-max-width-narrow);
+    padding: 40PX $page-gutter-wide 64PX;
+  }
+}

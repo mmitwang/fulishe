@@ -76,40 +76,126 @@
   font-size: $font-size-sm;
 }
 
-.formRow {
-  padding: 16rpx 0;
-  border-bottom: 1rpx solid $color-divider;
+.sectionHeader,
+.addressMeta,
+.storeLine {
+  display: flex;
+  align-items: center;
+}
 
-  &:last-child {
-    border-bottom: 0;
+.sectionHeader,
+.storeLine {
+  justify-content: space-between;
+}
+
+.sectionHeader {
+  margin-bottom: 24rpx;
+
+  .sectionTitle {
+    margin-bottom: 0;
   }
 }
 
-.formLabel {
-  display: block;
-  margin-bottom: 16rpx;
+.sectionAction {
+  color: $color-text-tertiary;
+  font-size: $font-size-sm;
+}
+
+.addressCard:active {
+  background: $color-bg-hover;
+}
+
+.addressMeta {
+  flex-wrap: wrap;
+  gap: 16rpx;
   color: $color-text-secondary;
   font-size: $font-size-sm;
 }
 
-.input {
-  width: 100%;
-  min-height: 72rpx;
-  padding: 0 24rpx;
+.receiver {
+  color: $color-text-primary;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+}
+
+.defaultBadge {
+  padding: 4rpx 12rpx;
+  border-radius: $radius-xs;
+  background: $color-primary-soft;
+  color: $color-primary;
+  font-size: $font-size-xs;
+}
+
+.addressText {
+  display: block;
+  margin-top: 20rpx;
+  font-size: $font-size-md;
+  line-height: $line-height-loose;
+}
+
+.addressEmpty {
+  display: block;
+  padding: 24rpx 0;
+  color: $color-text-tertiary;
+  font-size: $font-size-md;
+  text-align: center;
+}
+
+.storeLine {
+  margin-bottom: 24rpx;
+  padding: 20rpx 24rpx;
+  border-radius: $radius-md;
+  background: $color-bg-page;
+}
+
+.storeName {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+}
+
+.arrivalText {
+  color: $color-primary;
+  font-size: $font-size-xs;
+}
+
+.slotList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16rpx;
+}
+
+.slotOption {
+  min-height: 96rpx;
+  padding: 20rpx;
   border: 1rpx solid $color-border;
   border-radius: $radius-md;
   background: $color-bg-page;
-  box-sizing: border-box;
-  color: $color-text-primary;
-  font-size: $font-size-md;
 }
 
-.textarea {
-  width: 100%;
-  min-height: 144rpx;
-  padding: 24rpx;
-  box-sizing: border-box;
-  line-height: $line-height-normal;
+.slotLabel,
+.slotPeriod {
+  display: block;
+}
+
+.slotLabel {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+}
+
+.slotPeriod {
+  margin-top: 8rpx;
+  color: $color-text-tertiary;
+  font-size: $font-size-xs;
+}
+
+.slotActive {
+  border-color: $color-primary;
+  background: $color-primary-soft;
+  color: $color-primary;
+}
+
+.slotDisabled {
+  opacity: 0.45;
 }
 
 .paymentOption {

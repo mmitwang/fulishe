@@ -70,6 +70,17 @@
   @include text-ellipsis;
 }
 
+.deliveryTag {
+  align-self: flex-start;
+  margin-top: 16rpx;
+  padding: 6rpx 12rpx;
+  border-radius: $radius-xs;
+  background: $color-primary-soft;
+  color: $color-primary;
+  font-size: $font-size-xs;
+  white-space: nowrap;
+}
+
 .priceRow {
   display: flex;
   align-items: baseline;

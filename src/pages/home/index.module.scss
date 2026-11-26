@@ -39,6 +39,63 @@
   align-items: center;
 }
 
+.locationRow,
+.locationButton {
+  display: flex;
+  align-items: center;
+}
+
+.locationRow {
+  justify-content: space-between;
+  gap: 20rpx;
+  margin-bottom: 40rpx;
+}
+
+.locationButton {
+  flex: 1;
+  min-width: 0;
+  min-height: 80rpx;
+}
+
+.locationIcon {
+  margin-right: 16rpx;
+  color: $color-accent-soft;
+  font-size: 38rpx;
+}
+
+.locationCopy {
+  flex: 1;
+  min-width: 0;
+  margin-right: 12rpx;
+}
+
+.locationName,
+.locationMeta {
+  display: block;
+  @include text-ellipsis;
+}
+
+.locationName {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+}
+
+.locationMeta {
+  margin-top: 8rpx;
+  color: rgba(255, 255, 255, 0.64);
+  font-size: $font-size-xs;
+}
+
+.arrivalBadge {
+  flex: 0 0 auto;
+  padding: 10rpx 16rpx;
+  border: 1rpx solid rgba(255, 255, 255, 0.24);
+  border-radius: $radius-button;
+  color: $color-accent-soft;
+  font-size: $font-size-xs;
+  white-space: nowrap;
+}
+
 .brandRow {
   position: relative;
   z-index: 1;

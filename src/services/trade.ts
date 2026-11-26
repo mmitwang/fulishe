@@ -29,6 +29,10 @@ const createLocalOrder = (draft: CheckoutDraft, userId: number): Order => ({
   userName: draft.receiver,
   mobile: draft.mobile,
   address: draft.address,
+  addressId: draft.addressId,
+  storeId: draft.storeId,
+  storeName: draft.storeName,
+  deliverySlot: draft.deliverySlot,
   orderStatus: 0,
   payStatus: 0,
   totalAmount: Number(draft.items.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2)),
@@ -121,6 +125,10 @@ export const createOrder = async (draft: CheckoutDraft): Promise<Order> => {
         userName: draft.receiver,
         mobile: draft.mobile,
         address: draft.address,
+        addressId: draft.addressId,
+        storeId: draft.storeId,
+        storeName: draft.storeName,
+        deliverySlot: draft.deliverySlot,
         items: draft.items.map(item => ({ skuId: item.skuId, quantity: item.quantity, unitPrice: item.price }))
       }
     })

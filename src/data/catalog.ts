@@ -46,7 +46,8 @@ export const fallbackProducts: Product[] = names.map((spuName, index) => {
     image: image(prompts[index], id),
     images: [image(prompts[index], id)],
     videoUrl: VIDEO_URLS[id],
-    tags: ['品牌直供', '企业集采']
+    tags: ['品牌直供', '企业集采'],
+    deliveryTag: categoryId === 1 ? '电子卡券 · 即时到账' : [2, 3, 4, 6].includes(categoryId) ? '最快 30 分钟达' : '今日发货 · 预计明日达'
   }
 })
 

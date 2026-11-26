@@ -35,6 +35,7 @@ const skipCache = path =>
   path.startsWith('/api/benchmark') ||
   path.startsWith('/api/fuli-card') ||
   path.startsWith('/api/wechat') ||
+  path.startsWith('/api/h5/addresses') ||
   path.startsWith('/api/order/')
 
 const cacheMiddleware = (req, res, next) => {

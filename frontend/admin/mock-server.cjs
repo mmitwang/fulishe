@@ -21,6 +21,7 @@ require('./mock/routes-chain.cjs')(app)
 require('./mock/routes-supply.cjs')(app)
 require('./mock/routes-fuli-card.cjs')(app, jwt, SECRET_KEY)
 require('./mock/routes-trade.cjs')(app, jwt, SECRET_KEY)
+require('./mock/routes-consumer.cjs')(app)
 require('./mock/routes-wechat.cjs')(app, jwt, SECRET_KEY)
 require('./mock/routes-ops.cjs')(app)
 

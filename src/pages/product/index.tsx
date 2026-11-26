@@ -135,6 +135,11 @@ const ProductPage: React.FC = () => {
             {detail.serviceTags.map(tag => <Text key={tag} className={styles.serviceTag}>✓ {tag}</Text>)}
           </View>
 
+          <View className={styles.deliveryNotice}>
+            <Text className={styles.deliveryLabel}>门店履约</Text>
+            <Text className={styles.deliveryText}>{detail.deliveryTag} · 结算可选送达时段</Text>
+          </View>
+
           <View className={styles.card}>
             <Text className={styles.sectionTitle}>选择规格</Text>
             <View className={styles.skuList}>

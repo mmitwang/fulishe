@@ -41,6 +41,7 @@ export interface Product {
   image: string
   images: string[]
   tags: string[]
+  deliveryTag: string
   videoUrl?: string
 }
 
@@ -133,6 +134,10 @@ export interface Order {
   items: OrderItem[]
   logistics?: LogisticsStep[]
   refundAmount?: number
+  addressId?: number
+  storeId?: number
+  storeName?: string
+  deliverySlot?: string
   localMock?: boolean
 }
 
@@ -141,6 +146,47 @@ export interface CheckoutDraft {
   receiver: string
   mobile: string
   address: string
+  addressId?: number
+  storeId?: number
+  storeName?: string
+  deliverySlot?: string
+}
+
+export interface Store {
+  id: number
+  name: string
+  city: string
+  district: string
+  address: string
+  latitude: number
+  longitude: number
+  businessHours: string
+  deliveryMinutes: number
+}
+
+export interface DeliverySlot {
+  id: string
+  label: string
+  period: string
+  available: boolean
+}
+
+export interface FulfillmentInfo {
+  store: Store
+  arrivalText: string
+  slots: DeliverySlot[]
+}
+
+export interface Address {
+  id: number
+  userId: number
+  receiver: string
+  mobile: string
+  region: string
+  detail: string
+  tag: string
+  isDefault: boolean
+  createTime?: string
 }
 
 export interface PaymentResult {

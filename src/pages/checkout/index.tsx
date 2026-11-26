@@ -1,21 +1,25 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import { Image, Input, Text, Textarea, View } from '@tarojs/components'
-import Taro from '@tarojs/taro'
+import React, { useMemo, useState } from 'react'
+import { Image, Text, View } from '@tarojs/components'
+import Taro, { useDidShow } from '@tarojs/taro'
 import classnames from 'classnames'
-import { getCurrentUser } from '@/services/auth'
-import { isMockMode } from '@/services/config'
+import { formatAddress, listAddresses } from '@/services/address'
 import { getFuliCardAccount } from '@/services/fuli-card'
+import { getFulfillment, getStores, resolveSelectedStore } from '@/services/fulfillment'
+import { isMockMode } from '@/services/config'
 import { createOrder, payOrder } from '@/services/trade'
 import { useCartStore } from '@/store/cart'
-import type { CartItem, FuliCardAccount, Order } from '@/types'
+import type { Address, CartItem, DeliverySlot, FuliCardAccount, Order } from '@/types'
 import styles from './index.module.scss'
 
 const CheckoutPage: React.FC = () => {
   const removeFromCart = useCartStore(state => state.remove)
   const [items, setItems] = useState<CartItem[]>([])
-  const [receiver, setReceiver] = useState('')
-  const [mobile, setMobile] = useState('')
-  const [address, setAddress] = useState('')
+  const [selectedAddress, setSelectedAddress] = useState<Address | null>(null)
+  const [storeId, setStoreId] = useState(1)
+  const [storeName, setStoreName] = useState('')
+  const [arrivalText, setArrivalText] = useState('')
+  const [slots, setSlots] = useState<DeliverySlot[]>([])
+  const [deliverySlot, setDeliverySlot] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState<'wechat' | 'fuli_card'>('wechat')
   const [cardAccount, setCardAccount] = useState<FuliCardAccount | null>(null)
@@ -33,29 +37,45 @@ const CheckoutPage: React.FC = () => {
     }
   }
 
-  useEffect(() => {
-    const checkoutItems = Taro.getStorageSync('checkoutItems') || []
-    const user = getCurrentUser()
-    setItems(checkoutItems)
-    setReceiver(user?.realName || user?.nickname || '')
-    setMobile(user?.mobile || '')
+  const loadCheckout = async () => {
+    setItems(Taro.getStorageSync('checkoutItems') || [])
+    const picked = Taro.getStorageSync('checkoutAddress') as Address | ''
+    if (picked) Taro.removeStorageSync('checkoutAddress')
+    try {
+      const addresses = await listAddresses()
+      const selected = picked || addresses.find(item => item.isDefault) || addresses[0] || null
+      setSelectedAddress(selected)
+    } catch (error) {
+      console.error('[Checkout] 地址簿读取失败', error)
+      if (picked) setSelectedAddress(picked)
+    }
+
+    const stores = await getStores()
+    const store = resolveSelectedStore(stores)
+    const fulfillment = await getFulfillment(store.id)
+    setStoreId(store.id)
+    setStoreName(store.name)
+    setArrivalText(fulfillment.arrivalText)
+    setSlots(fulfillment.slots)
+    setDeliverySlot(current => fulfillment.slots.some(item => item.id === current && item.available) ? current : fulfillment.slots.find(item => item.available)?.id || '')
+  }
+
+  useDidShow(() => {
+    void loadCheckout()
     void loadCardAccount()
-  }, [])
+  })
 
   const total = useMemo(() => Number(items.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2)), [items])
   const quantity = useMemo(() => items.reduce((sum, item) => sum + item.quantity, 0), [items])
+  const selectedSlot = slots.find(item => item.id === deliverySlot)
 
   const validate = (): boolean => {
-    if (receiver.trim().length < 2) {
-      Taro.showToast({ title: '请填写收货人姓名', icon: 'none' })
+    if (!selectedAddress) {
+      Taro.showToast({ title: '请先选择收货地址', icon: 'none' })
       return false
     }
-    if (!/^1\d{10}$/.test(mobile.trim())) {
-      Taro.showToast({ title: '请填写 11 位手机号码', icon: 'none' })
-      return false
-    }
-    if (address.trim().length < 6) {
-      Taro.showToast({ title: '请填写完整收货地址', icon: 'none' })
+    if (!selectedSlot) {
+      Taro.showToast({ title: '请选择配送时段', icon: 'none' })
       return false
     }
     return true
@@ -67,7 +87,7 @@ const CheckoutPage: React.FC = () => {
   }
 
   const submit = async () => {
-    if (submitting || !items.length || !validate()) return
+    if (submitting || !items.length || !validate() || !selectedAddress || !selectedSlot) return
     setSubmitting(true)
     let createdOrder: Order | null = null
     try {
@@ -80,7 +100,16 @@ const CheckoutPage: React.FC = () => {
           throw new Error(`福卡余额不足，还差 ¥${((requiredCents - latestAccount.balanceCents) / 100).toFixed(2)}，请先充值`)
         }
       }
-      createdOrder = await createOrder({ items, receiver: receiver.trim(), mobile: mobile.trim(), address: address.trim() })
+      createdOrder = await createOrder({
+        items,
+        receiver: selectedAddress.receiver,
+        mobile: selectedAddress.mobile,
+        address: formatAddress(selectedAddress),
+        addressId: selectedAddress.id,
+        storeId,
+        storeName,
+        deliverySlot: `${selectedSlot.label} ${selectedSlot.period}`
+      })
       items.forEach(item => removeFromCart(item.skuId))
       await payOrder(createdOrder, paymentMethod)
       Taro.showToast({ title: '支付完成', icon: 'success' })
@@ -114,19 +143,44 @@ const CheckoutPage: React.FC = () => {
 
   return (
     <View className={styles.page}>
+      <View className={`${styles.card} ${styles.addressCard}`} onClick={() => Taro.navigateTo({ url: '/pages/address/index?select=1' })} role="button" aria-label="选择收货地址">
+        <View className={styles.sectionHeader}>
+          <Text className={styles.sectionTitle}>收货地址</Text>
+          <Text className={styles.sectionAction}>更换 ›</Text>
+        </View>
+        {selectedAddress ? (
+          <View>
+            <View className={styles.addressMeta}>
+              <Text className={styles.receiver}>{selectedAddress.receiver}</Text>
+              <Text>{selectedAddress.mobile}</Text>
+              {selectedAddress.isDefault && <Text className={styles.defaultBadge}>默认</Text>}
+            </View>
+            <Text className={styles.addressText}>{formatAddress(selectedAddress)}</Text>
+          </View>
+        ) : (
+          <Text className={styles.addressEmpty}>请选择或新增收货地址</Text>
+        )}
+      </View>
+
       <View className={styles.card}>
-        <Text className={styles.sectionTitle}>收货信息</Text>
-        <View className={styles.formRow}>
-          <Text className={styles.formLabel}>收货人</Text>
-          <Input className={styles.input} value={receiver} maxlength={20} placeholder="请输入收货人姓名" onInput={event => setReceiver(event.detail.value)} />
+        <Text className={styles.sectionTitle}>配送时段</Text>
+        <View className={styles.storeLine}>
+          <Text className={styles.storeName}>{storeName || '附近门店'}</Text>
+          <Text className={styles.arrivalText}>{arrivalText}</Text>
         </View>
-        <View className={styles.formRow}>
-          <Text className={styles.formLabel}>手机号码</Text>
-          <Input className={styles.input} value={mobile} type="number" maxlength={11} placeholder="用于配送与订单通知" onInput={event => setMobile(event.detail.value)} />
-        </View>
-        <View className={styles.formRow}>
-          <Text className={styles.formLabel}>收货地址</Text>
-          <Textarea className={`${styles.input} ${styles.textarea}`} value={address} maxlength={120} placeholder="省市区、街道及详细门牌号" onInput={event => setAddress(event.detail.value)} />
+        <View className={styles.slotList}>
+          {slots.map(slot => (
+            <View
+              className={classnames(styles.slotOption, deliverySlot === slot.id && styles.slotActive, !slot.available && styles.slotDisabled)}
+              key={slot.id}
+              onClick={() => slot.available && setDeliverySlot(slot.id)}
+              role="radio"
+              aria-checked={deliverySlot === slot.id}
+            >
+              <Text className={styles.slotLabel}>{slot.label}</Text>
+              <Text className={styles.slotPeriod}>{slot.period}</Text>
+            </View>
+          ))}
         </View>
       </View>
 

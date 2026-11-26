@@ -19,6 +19,7 @@ interface RawProduct {
   images?: string[]
   imageList?: string[]
   tags?: string[]
+  deliveryTag?: string
   serviceTags?: string[]
   specs?: { name: string; value: string }[]
   detailSections?: { title: string; content: string }[]
@@ -61,6 +62,7 @@ const normalizeProduct = (raw: RawProduct): Product => {
     image: cover,
     images: raw.images?.length ? raw.images : raw.imageList?.length ? raw.imageList : [cover],
     tags: raw.tags?.length ? raw.tags : ['品牌直供', '企业集采'],
+    deliveryTag: raw.deliveryTag || fallback.deliveryTag,
     videoUrl: raw.videoUrl || fallback.videoUrl
   }
 }
@@ -86,16 +88,32 @@ export const getCategories = async (): Promise<Category[]> => {
   }
 }
 
-export const getProductPage = async (current = 1, size = 12, categoryId = 0, keyword = ''): Promise<PageResult<Product>> => {
+export interface ProductQueryOptions {
+  sort?: 'default' | 'sales' | 'priceAsc' | 'priceDesc' | 'newest'
+  instant?: boolean
+}
+
+export const getProductPage = async (current = 1, size = 12, categoryId = 0, keyword = '', options: ProductQueryOptions = {}): Promise<PageResult<Product>> => {
   try {
     const data: Record<string, unknown> = { current, size }
     if (categoryId) data.categoryId = categoryId
     if (keyword.trim()) data.spuName = keyword.trim()
+    if (options.sort && options.sort !== 'default') data.sort = options.sort
+    if (options.instant) data.instant = 1
     const result = await request<PageResult<RawProduct>>({ url: '/product/spu/page', data, cacheTtl: 20000 })
     return { ...result, records: result.records.map(normalizeProduct) }
   } catch (error) {
     console.error('[Catalog] 商品接口不可用，使用本地兜底', error)
-    const filtered = fallbackProducts.filter(item => (!categoryId || item.categoryId === categoryId) && (!keyword || item.spuName.includes(keyword)))
+    const value = keyword.trim().toLowerCase()
+    let filtered = fallbackProducts.filter(item => {
+      const matchesKeyword = !value || [item.spuName, item.brandName, item.categoryName, item.description].some(text => text.toLowerCase().includes(value))
+      const matchesDelivery = !options.instant || item.deliveryTag.includes('30 分钟') || item.deliveryTag.includes('即时')
+      return (!categoryId || item.categoryId === categoryId) && matchesKeyword && matchesDelivery
+    })
+    if (options.sort === 'sales') filtered = [...filtered].sort((a, b) => b.sales - a.sales)
+    if (options.sort === 'priceAsc') filtered = [...filtered].sort((a, b) => a.sellPrice - b.sellPrice)
+    if (options.sort === 'priceDesc') filtered = [...filtered].sort((a, b) => b.sellPrice - a.sellPrice)
+    if (options.sort === 'newest') filtered = [...filtered].sort((a, b) => b.id - a.id)
     return { records: filtered.slice((current - 1) * size, current * size), total: filtered.length, current, size }
   }
 }

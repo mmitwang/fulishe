@@ -162,7 +162,7 @@ module.exports = function registerTradeRoutes(app, jwt, SECRET_KEY) {
 
   /* ---------------- 下单 / 支付 / 退款 ---------------- */
   const createOrderHandler = (req, res) => {
-    const { userId = 2, items = [], receiver, userName, mobile, address, remark, couponId } = req.body
+    const { userId = 2, items = [], receiver, userName, mobile, address, remark, couponId, addressId, storeId, storeName, deliverySlot } = req.body
     if (!items.length) return fail(res, '请选择商品')
     const user = users.find(u => u.id === Number(userId)) || users[1]
     let totalAmount = 0
@@ -194,6 +194,10 @@ module.exports = function registerTradeRoutes(app, jwt, SECRET_KEY) {
       userName: receiver || userName || user.realName,
       mobile: mobile || user.mobile,
       address: address || '浙江省杭州市西湖区文三路 90 号',
+      addressId: addressId || null,
+      storeId: storeId || null,
+      storeName: storeName || '',
+      deliverySlot: deliverySlot || '',
       orderType: 0,
       orderStatus: 0,
       payStatus: 0,
