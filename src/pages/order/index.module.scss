@@ -165,6 +165,25 @@
   line-height: $line-height-normal;
 }
 
+.promotionDetail {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20rpx;
+  padding: 16rpx 20rpx;
+  border-radius: $radius-sm;
+  background: $color-primary-soft;
+  color: $color-primary-dark;
+  font-size: $font-size-xs;
+}
+
+.promotionDiscount {
+  flex: 0 0 auto;
+  margin-left: 16rpx;
+  color: $color-price;
+  font-weight: $font-weight-semibold;
+}
+
 .orderFooter {
   display: flex;
   flex-wrap: wrap;

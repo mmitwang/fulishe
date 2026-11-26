@@ -4,6 +4,7 @@ import { clearRequestCache, request, requestText } from './api'
 import { ensureSession } from './auth'
 import { isMockMode } from './config'
 import { isFuliCardUnknownOutcome, resolveFuliCardOperation } from './fuli-card'
+import { calculateFullReduction } from './promotion'
 
 const localOrderKey = 'localMockOrders'
 
@@ -22,35 +23,46 @@ const saveLocalOrder = (order: Order): void => {
   Taro.setStorageSync(localOrderKey, orders.slice(0, 50))
 }
 
-const createLocalOrder = (draft: CheckoutDraft, userId: number): Order => ({
-  id: Date.now(),
-  orderNo: `MOCK${Date.now()}`,
-  userId,
-  userName: draft.receiver,
-  mobile: draft.mobile,
-  address: draft.address,
-  addressId: draft.addressId,
-  storeId: draft.storeId,
-  storeName: draft.storeName,
-  deliverySlot: draft.deliverySlot,
-  orderStatus: 0,
-  payStatus: 0,
-  totalAmount: Number(draft.items.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2)),
-  discountAmount: 0,
-  payAmount: Number(draft.items.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2)),
-  createTime: new Date().toISOString(),
-  localMock: true,
-  items: draft.items.map(item => ({
-    spuId: item.spuId,
-    spuName: item.spuName,
-    spuImage: item.image,
-    skuId: item.skuId,
-    skuName: item.skuName,
-    quantity: item.quantity,
-    unitPrice: item.price,
-    totalPrice: item.price * item.quantity
-  }))
-})
+const createLocalOrder = (draft: CheckoutDraft, userId: number): Order => {
+  const totalAmount = Number(draft.items.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2))
+  const quote = calculateFullReduction(totalAmount)
+  return {
+    id: Date.now(),
+    orderNo: `MOCK${Date.now()}`,
+    userId,
+    userName: draft.receiver,
+    mobile: draft.mobile,
+    address: draft.address,
+    addressId: draft.addressId,
+    storeId: draft.storeId,
+    storeName: draft.storeName,
+    deliverySlot: draft.deliverySlot,
+    orderStatus: 0,
+    payStatus: 0,
+    totalAmount,
+    discountAmount: quote.discountAmount,
+    payAmount: Math.max(1, quote.payAmount),
+    promotion: quote.appliedRule ? {
+      type: 'FULL_REDUCTION',
+      ruleId: quote.appliedRule.id,
+      name: `满 ${quote.appliedRule.thresholdAmount} 减 ${quote.appliedRule.discountAmount}`,
+      thresholdAmount: quote.appliedRule.thresholdAmount,
+      discountAmount: quote.appliedRule.discountAmount
+    } : null,
+    createTime: new Date().toISOString(),
+    localMock: true,
+    items: draft.items.map(item => ({
+      spuId: item.spuId,
+      spuName: item.spuName,
+      spuImage: item.image,
+      skuId: item.skuId,
+      skuName: item.skuName,
+      quantity: item.quantity,
+      unitPrice: item.price,
+      totalPrice: item.price * item.quantity
+    }))
+  }
+}
 
 const pushLogistics = (order: Order, steps: { name: string; desc: string }[]): Order => ({
   ...order,
@@ -129,6 +141,7 @@ export const createOrder = async (draft: CheckoutDraft): Promise<Order> => {
         storeId: draft.storeId,
         storeName: draft.storeName,
         deliverySlot: draft.deliverySlot,
+        promotionId: draft.promotionId,
         items: draft.items.map(item => ({ skuId: item.skuId, quantity: item.quantity, unitPrice: item.price }))
       }
     })
@@ -137,7 +150,7 @@ export const createOrder = async (draft: CheckoutDraft): Promise<Order> => {
     return order
   } catch (error) {
     console.error('[Trade] 真实订单创建失败', error)
-    if (!isMockMode()) throw error
+    if (!isMockMode() || (error instanceof Error && error.message.includes('满减优惠已变化'))) throw error
     const order = createLocalOrder(draft, user.id)
     saveLocalOrder(order)
     console.log('[Trade] 已回退本地模拟订单', order.orderNo)

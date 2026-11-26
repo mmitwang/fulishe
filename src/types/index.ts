@@ -115,6 +115,29 @@ export interface OrderItem {
   totalPrice?: number
 }
 
+export interface FullReductionRule {
+  id: number
+  thresholdAmount: number
+  discountAmount: number
+}
+
+export interface FullReductionQuote {
+  appliedRule: FullReductionRule | null
+  nextRule: FullReductionRule | null
+  shortfallAmount: number
+  discountAmount: number
+  payAmount: number
+  progress: number
+}
+
+export interface OrderPromotion {
+  type: 'FULL_REDUCTION'
+  ruleId: number
+  name: string
+  thresholdAmount: number
+  discountAmount: number
+}
+
 export interface Order {
   id: number
   orderNo: string
@@ -138,6 +161,7 @@ export interface Order {
   storeId?: number
   storeName?: string
   deliverySlot?: string
+  promotion?: OrderPromotion | null
   localMock?: boolean
 }
 
@@ -150,6 +174,7 @@ export interface CheckoutDraft {
   storeId?: number
   storeName?: string
   deliverySlot?: string
+  promotionId?: number
 }
 
 export interface Store {

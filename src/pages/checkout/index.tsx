@@ -6,9 +6,10 @@ import { formatAddress, listAddresses } from '@/services/address'
 import { getFuliCardAccount } from '@/services/fuli-card'
 import { getFulfillment, getStores, resolveSelectedStore } from '@/services/fulfillment'
 import { isMockMode } from '@/services/config'
+import { calculateFullReduction, FALLBACK_FULL_REDUCTION_RULES, getFullReductionRules } from '@/services/promotion'
 import { createOrder, payOrder } from '@/services/trade'
 import { useCartStore } from '@/store/cart'
-import type { Address, CartItem, DeliverySlot, FuliCardAccount, Order } from '@/types'
+import type { Address, CartItem, DeliverySlot, FuliCardAccount, FullReductionRule, Order } from '@/types'
 import styles from './index.module.scss'
 
 const CheckoutPage: React.FC = () => {
@@ -23,6 +24,7 @@ const CheckoutPage: React.FC = () => {
   const [submitting, setSubmitting] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState<'wechat' | 'fuli_card'>('wechat')
   const [cardAccount, setCardAccount] = useState<FuliCardAccount | null>(null)
+  const [rules, setRules] = useState<FullReductionRule[]>(FALLBACK_FULL_REDUCTION_RULES)
 
   const loadCardAccount = async () => {
     if (!Taro.getStorageSync('token')) {
@@ -39,6 +41,7 @@ const CheckoutPage: React.FC = () => {
 
   const loadCheckout = async () => {
     setItems(Taro.getStorageSync('checkoutItems') || [])
+    void getFullReductionRules().then(setRules)
     const picked = Taro.getStorageSync('checkoutAddress') as Address | ''
     if (picked) Taro.removeStorageSync('checkoutAddress')
     try {
@@ -66,6 +69,7 @@ const CheckoutPage: React.FC = () => {
   })
 
   const total = useMemo(() => Number(items.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2)), [items])
+  const quote = useMemo(() => calculateFullReduction(total, rules), [total, rules])
   const quantity = useMemo(() => items.reduce((sum, item) => sum + item.quantity, 0), [items])
   const selectedSlot = slots.find(item => item.id === deliverySlot)
 
@@ -95,7 +99,7 @@ const CheckoutPage: React.FC = () => {
         if (!Taro.getStorageSync('token')) throw new Error('请先通过账号登录并使用 Mock 账户服务')
         const latestAccount = await getFuliCardAccount()
         setCardAccount(latestAccount)
-        const requiredCents = Math.round(total * 100)
+        const requiredCents = Math.round(quote.payAmount * 100)
         if (latestAccount.balanceCents < requiredCents) {
           throw new Error(`福卡余额不足，还差 ¥${((requiredCents - latestAccount.balanceCents) / 100).toFixed(2)}，请先充值`)
         }
@@ -108,7 +112,8 @@ const CheckoutPage: React.FC = () => {
         addressId: selectedAddress.id,
         storeId,
         storeName,
-        deliverySlot: `${selectedSlot.label} ${selectedSlot.period}`
+        deliverySlot: `${selectedSlot.label} ${selectedSlot.period}`,
+        promotionId: quote.appliedRule?.id
       })
       items.forEach(item => removeFromCart(item.skuId))
       await payOrder(createdOrder, paymentMethod)
@@ -224,7 +229,7 @@ const CheckoutPage: React.FC = () => {
           {paymentMethod === 'wechat'
             ? isMockMode() ? '仅模拟微信回调并更新订单状态，不打开真实收银台，不产生实际扣款。' : '将请求后端返回的微信支付签名参数；商户参数未配置时会明确提示。'
             : cardAccount
-              ? `福卡余额 ¥${(cardAccount.balanceCents / 100).toFixed(2)}，本单需 ¥${total.toFixed(2)}。仅支持福卡全额支付，不与微信混合扣款。`
+              ? `福卡余额 ¥${(cardAccount.balanceCents / 100).toFixed(2)}，本单需 ¥${quote.payAmount.toFixed(2)}。仅支持福卡全额支付，不与微信混合扣款。`
               : '福卡需登录并连接 Mock 账户服务；余额暂不可用时会阻止提交，不会创建本地余额。'}
         </Text>
       </View>
@@ -232,15 +237,18 @@ const CheckoutPage: React.FC = () => {
       <View className={styles.card}>
         <View className={styles.amountRow}><Text className={styles.amountLabel}>商品金额</Text><Text className={styles.amountValue}>¥{total.toFixed(2)}</Text></View>
         <View className={styles.amountRow}><Text className={styles.amountLabel}>运费</Text><Text className={styles.amountValue}>¥0.00</Text></View>
-        <View className={styles.amountRow}><Text className={styles.amountLabel}>优惠</Text><Text className={styles.amountValue}>−¥0.00</Text></View>
-        <View className={`${styles.amountRow} ${styles.totalRow}`}><Text className={styles.amountLabel}>应付合计</Text><Text className={styles.totalValue}>¥{total.toFixed(2)}</Text></View>
+        <View className={styles.amountRow}>
+          <Text className={styles.amountLabel}>{quote.appliedRule ? `全场满减 · 满${quote.appliedRule.thresholdAmount}减${quote.appliedRule.discountAmount}` : '满减优惠'}</Text>
+          <Text className={styles.discountValue}>−¥{quote.discountAmount.toFixed(2)}</Text>
+        </View>
+        <View className={`${styles.amountRow} ${styles.totalRow}`}><Text className={styles.amountLabel}>应付合计</Text><Text className={styles.totalValue}>¥{quote.payAmount.toFixed(2)}</Text></View>
       </View>
 
       <View className={styles.actionBar}>
         <View className={styles.actionBarInner}>
           <View className={styles.actionAmount}>
             <Text className={styles.actionHint}>共 {quantity} 件，应付</Text>
-            <Text className={styles.actionPrice}>¥{total.toFixed(2)}</Text>
+            <Text className={styles.actionPrice}>¥{quote.payAmount.toFixed(2)}</Text>
           </View>
           <View className={classnames(styles.submitButton, submitting && styles.disabled)} onClick={() => void submit()} role="button" aria-label="提交订单并支付">
             {submitting ? '正在提交…' : '提交并支付'}

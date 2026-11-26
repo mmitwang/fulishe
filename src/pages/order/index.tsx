@@ -143,6 +143,12 @@ const OrderPage: React.FC = () => {
 
           <Text className={styles.receiver}>{order.userName} · {order.mobile}</Text>
           <Text className={styles.address}>{order.address}</Text>
+          {order.promotion && (
+            <View className={styles.promotionDetail}>
+              <Text>全场满减 · {order.promotion.name}</Text>
+              <Text className={styles.promotionDiscount}>−¥{Number(order.promotion.discountAmount).toFixed(2)}</Text>
+            </View>
+          )}
           {order.localMock && <Text className={styles.mockBadge}>本地模拟订单 · 不发生真实交易</Text>}
           {order.payMethod === 'fuli_card' && <Text className={styles.mockBadge}>福礼社卡支付{order.payNo ? ` · ${order.payNo}` : ''}</Text>}
 

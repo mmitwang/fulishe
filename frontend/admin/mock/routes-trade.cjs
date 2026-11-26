@@ -4,6 +4,26 @@ const { carts, banners, quickEntries, notices, orders, orderItems, payRecords, r
 const { productsById, skusBySpuId, productsByCategory, tracesBySpuId, tracesByCode, couponsByCode, couponsByTraceCode, couponTemplatesById } = require('./indexes.cjs')
 const { service: fuliCardService } = require('./fuli-card-service.cjs')
 
+const FULL_REDUCTION_RULES = [
+  { id: 1, thresholdAmount: 99, discountAmount: 10 },
+  { id: 2, thresholdAmount: 199, discountAmount: 25 },
+  { id: 3, thresholdAmount: 299, discountAmount: 40 }
+]
+const roundMoney = value => Number(Number(value).toFixed(2))
+const resolveFullReduction = totalAmount => {
+  const rule = [...FULL_REDUCTION_RULES]
+    .sort((a, b) => a.thresholdAmount - b.thresholdAmount)
+    .filter(item => totalAmount >= item.thresholdAmount)
+    .pop() || null
+  return rule ? {
+    type: 'FULL_REDUCTION',
+    ruleId: rule.id,
+    name: `满 ${rule.thresholdAmount} 减 ${rule.discountAmount}`,
+    thresholdAmount: rule.thresholdAmount,
+    discountAmount: rule.discountAmount
+  } : null
+}
+
 const nextId = arr => arr.reduce((m, x) => Math.max(m, x.id || 0), 0) + 1
 let flowSeq = 1000
 
@@ -160,9 +180,13 @@ module.exports = function registerTradeRoutes(app, jwt, SECRET_KEY) {
     ok(res, null, '已删除')
   })
 
-  /* ---------------- 下单 / 支付 / 退款 ---------------- */
+  /* ---------------- 满减 / 下单 / 支付 / 退款 ---------------- */
+  app.get('/api/h5/promotions/full-reduction', (req, res) => {
+    ok(res, { name: '全场满减', rules: FULL_REDUCTION_RULES })
+  })
+
   const createOrderHandler = (req, res) => {
-    const { userId = 2, items = [], receiver, userName, mobile, address, remark, couponId, addressId, storeId, storeName, deliverySlot } = req.body
+    const { userId = 2, items = [], receiver, userName, mobile, address, remark, couponId, promotionId, addressId, storeId, storeName, deliverySlot } = req.body
     if (!items.length) return fail(res, '请选择商品')
     const user = users.find(u => u.id === Number(userId)) || users[1]
     let totalAmount = 0
@@ -175,17 +199,24 @@ module.exports = function registerTradeRoutes(app, jwt, SECRET_KEY) {
       totalAmount += sku.price * it.quantity
       lines.push({ sku, spu, quantity: Number(it.quantity) })
     }
-    let discountAmount = 0
+    totalAmount = roundMoney(totalAmount)
+    // 满减以服务端 SKU 实价为准，客户端只传预期档位用于识别规则变更。
+    const promotion = resolveFullReduction(totalAmount)
+    if (promotionId !== undefined && promotionId !== null && promotionId !== '' && Number(promotionId) !== Number(promotion?.ruleId || 0)) {
+      return fail(res, '满减优惠已变化，请返回结算页重新确认')
+    }
+    let couponDiscountAmount = 0
     let coupon = null
     if (couponId) {
       coupon = coupons.find(c => c.id === Number(couponId))
       if (coupon && coupon.status === 0 && totalAmount >= coupon.minAmount) {
-        discountAmount = coupon.couponType === 2 ? Math.round(totalAmount * (1 - (coupon.faceValue / 100))) : coupon.faceValue
+        couponDiscountAmount = coupon.couponType === 2 ? Math.round(totalAmount * (1 - (coupon.faceValue / 100))) : coupon.faceValue
       } else {
         coupon = null
       }
     }
-    const payAmount = Math.max(1, totalAmount - discountAmount)
+    const discountAmount = roundMoney((promotion?.discountAmount || 0) + couponDiscountAmount)
+    const payAmount = Math.max(1, roundMoney(totalAmount - discountAmount))
     const orderNo = `ORD${Date.now()}${flowSeq++}`
     const order = {
       id: nextId(orders),
@@ -204,6 +235,7 @@ module.exports = function registerTradeRoutes(app, jwt, SECRET_KEY) {
       totalAmount,
       discountAmount,
       payAmount,
+      promotion,
       payMethod: '',
       payNo: null,
       payTime: null,
