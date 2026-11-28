@@ -23,8 +23,9 @@ const randInt = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a
 const pick = (arr, n) => arr.slice(0, n)
 
 const paginate = (list, q = {}) => {
-  const current = parseInt(q.current || q.pageNum || 1) || 1
-  const size = parseInt(q.size || q.pageSize || 10) || 10
+  // 分页参数做上下界收敛，避免负数 offset 与超大 size 拖垮 Mock
+  const current = Math.max(1, parseInt(q.current || q.pageNum || 1) || 1)
+  const size = Math.min(200, Math.max(1, parseInt(q.size || q.pageSize || 10) || 10))
   const start = (current - 1) * size
   return { records: list.slice(start, start + size), total: list.length, current, size }
 }

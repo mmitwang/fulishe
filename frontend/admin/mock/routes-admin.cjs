@@ -1,7 +1,12 @@
 const { ok, fail, paginate, like, numEq, fmt } = require('./helpers.cjs')
 const { tenants, categories, brands, products, skus } = require('./seed.cjs')
-const { orders, payRecords, refunds, settlements } = require('./seed-extra.cjs')
+const { orders, payRecords, refunds, settlements, orderItems } = require('./seed-extra.cjs')
 const { createAuthz, ALL } = require('./authz.cjs')
+const distributionService = require('./distribution-service.cjs')
+const stockService = require('./stock-service.cjs')
+const fundService = require('./fund-service.cjs')
+const financeService = require('./finance-service.cjs')
+const perf = require('./perf.cjs')
 
 const nextId = arr => arr.reduce((max, item) => Math.max(max, Number(item.id) || 0), 0) + 1
 const productFields = [
@@ -12,7 +17,7 @@ const productFields = [
 
 module.exports = function registerAdminRoutes(app, jwt, SECRET_KEY) {
   const {
-    authenticate, requirePermission, requireSuperAdmin, scopeMerchant, assertMerchantAccess,
+    authenticate, requirePermission, requireSuperAdmin, scopeMerchant, scopeSupplier, assertMerchantAccess,
     getOrderItems, getOrderMerchantFields, canAccessOrder, scopeOrders, getRecordOrder, forbidden
   } = createAuthz(jwt, SECRET_KEY)
 
@@ -203,6 +208,7 @@ module.exports = function registerAdminRoutes(app, jwt, SECRET_KEY) {
       status: 1
     }
     skus.push(sku)
+    perf.clearCache()
     ok(res, productView(product), '新增成功')
   })
 
@@ -211,6 +217,7 @@ module.exports = function registerAdminRoutes(app, jwt, SECRET_KEY) {
     if (!product) return
     applyProductFields(product, req.body)
     skus.filter(item => item.spuId === product.id).forEach(item => { item.merchantId = product.merchantId })
+    perf.clearCache()
     ok(res, productView(product), '修改成功')
   })
 
@@ -219,6 +226,7 @@ module.exports = function registerAdminRoutes(app, jwt, SECRET_KEY) {
     if (!product) return
     product.status = Number(req.body.status) === 1 ? 1 : 0
     product.updateTime = fmt(new Date())
+    perf.clearCache()
     ok(res, productView(product), product.status === 1 ? '商品已上架' : '商品已下架')
   })
 
@@ -232,6 +240,7 @@ module.exports = function registerAdminRoutes(app, jwt, SECRET_KEY) {
     const idSet = new Set(ids)
     for (let i = products.length - 1; i >= 0; i--) if (idSet.has(products[i].id)) products.splice(i, 1)
     for (let i = skus.length - 1; i >= 0; i--) if (idSet.has(skus[i].spuId)) skus.splice(i, 1)
+    perf.clearCache()
     ok(res, null, '批量删除成功')
   })
 
@@ -240,6 +249,7 @@ module.exports = function registerAdminRoutes(app, jwt, SECRET_KEY) {
     if (!product) return
     products.splice(products.findIndex(item => item.id === product.id), 1)
     for (let i = skus.length - 1; i >= 0; i--) if (skus[i].spuId === product.id) skus.splice(i, 1)
+    perf.clearCache()
     ok(res, null, '删除成功')
   })
 
@@ -303,7 +313,8 @@ module.exports = function registerAdminRoutes(app, jwt, SECRET_KEY) {
   app.get('/api/admin/pay/record/page', authenticate, requirePermission('pay:record'), payRecordPage)
 
   const refundPage = (req, res) => {
-    let list = scopedRecords(req.auth, [...refunds].reverse())
+    // 新退款申请通过 unshift 插到数组头部，这里统一按 id 倒序，保证最新申请在首页可见
+    let list = scopedRecords(req.auth, [...refunds].sort((a, b) => Number(b.id) - Number(a.id)))
     if (req.auth.dataScope === ALL && req.query.merchantId) {
       list = list.filter(record => {
         const order = getRecordOrder(record)
@@ -334,12 +345,97 @@ module.exports = function registerAdminRoutes(app, jwt, SECRET_KEY) {
     refund.auditBy = req.auth.user.realName || req.auth.user.username
     refund.auditor = refund.auditBy
     refund.auditTime = fmt(new Date())
-    ok(res, recordView(refund), '售后审核已保存')
+
+    // 仅对“待审核/处理中”的退款执行资金流；已退款记录只补审核意见，保持幂等
+    const pending = Number(refund.refundStatus) < 2
+    if (pending && Number(result) === 1) {
+      const pay = payRecords.find(item => item.payNo === refund.payNo) ||
+        payRecords.find(item => item.orderNo === refund.orderNo)
+      refund.refundStatus = 2
+      refund.refundTime = fmt(new Date())
+      refund.thirdRefundNo = `WXREF${Date.now()}`
+      if (pay) {
+        pay.payStatus = 4
+        pay.refundTime = refund.refundTime
+        pay.refundNo = refund.refundNo
+      }
+      if (order) {
+        order.payStatus = 4
+        order.orderStatus = 6
+        order.remark = '退款已完成，原路退回'
+      }
+      stockService.restock(refund.orderNo, orderItems.filter(item => item.orderNo === refund.orderNo), '售后退款回补库存')
+      fundService.record({
+        bizType: 'REFUND_OUT',
+        amountCents: fundService.toCents(refund.refundAmount),
+        orderNo: refund.orderNo,
+        refNo: refund.refundNo,
+        merchantId: order ? order.merchantId : null,
+        remark: `售后审核通过 · 原路退回（${refund.thirdRefundNo}）`
+      })
+      distributionService.onOrderRefunded(order, '售后退款审核通过')
+      financeService.onOrderRefunded(order, refund.refundAmount)
+    } else if (pending && Number(result) !== 1) {
+      refund.refundStatus = 3
+      refund.rejectReason = refund.auditOpinion
+      if (order) {
+        order.orderStatus = 1
+        order.remark = `退款申请被驳回：${refund.auditOpinion || '不符合退款条件'}`
+      }
+    }
+    ok(res, recordView(refund), pending ? '售后审核已处理' : '售后审核已保存')
+  })
+
+  /* ---------------- 资金流水 ---------------- */
+  const fundFlowPage = (req, res) => {
+    const result = fundService.page({
+      bizType: req.query.bizType,
+      orderNo: req.query.orderNo,
+      merchantId: req.auth.dataScope === ALL ? req.query.merchantId : req.auth.user.merchantId,
+      pageNum: req.query.pageNum || req.query.current,
+      pageSize: req.query.pageSize || req.query.size
+    })
+    result.current = result.pageNum
+    result.size = result.pageSize
+    ok(res, result)
+  }
+  app.get('/api/admin/fund/flow/page', authenticate, requirePermission('pay:record'), fundFlowPage)
+  app.get('/api/admin/fund/flow/summary', authenticate, requirePermission('pay:record'), (req, res) => {
+    ok(res, fundService.summary(req.auth.dataScope === ALL ? req.query.merchantId : req.auth.user.merchantId))
+  })
+
+  /* ---------------- 库存预占 ---------------- */
+  app.get('/api/admin/stock/reservation/page', authenticate, requirePermission('supply:inventory'), (req, res) => {
+    const result = stockService.reservationPage({
+      orderNo: req.query.orderNo,
+      status: req.query.status,
+      pageNum: req.query.pageNum || req.query.current,
+      pageSize: req.query.pageSize || req.query.size
+    })
+    result.current = result.pageNum
+    result.size = result.pageSize
+    ok(res, result)
+  })
+  app.get('/api/admin/stock/reservation/summary', authenticate, requirePermission('supply:inventory'), (req, res) => {
+    ok(res, stockService.stockSummary())
+  })
+  app.post('/api/admin/stock/reservation/release-expired', authenticate, requirePermission('supply:inventory'), (req, res) => {
+    const result = stockService.releaseExpired()
+    ok(res, result, result.releasedOrders ? `已释放 ${result.releasedOrders} 个超时订单的预占库存` : '暂无超时预占')
+  })
+  app.get('/api/admin/stock/flow/page', authenticate, requirePermission('supply:inventory'), (req, res) => {
+    ok(res, stockService.flowPage({
+      skuCode: req.query.skuCode,
+      bizType: req.query.bizType,
+      orderNo: req.query.orderNo,
+      pageNum: req.query.pageNum,
+      pageSize: req.query.pageSize
+    }))
   })
 
   /* ---------------- 结算 ---------------- */
   const settlementPage = (req, res) => {
-    let list = scopeMerchant(req.auth, settlements)
+    let list = scopeSupplier(req.auth, settlements)
     if (req.auth.dataScope === ALL && req.query.merchantId) list = list.filter(item => numEq(item.merchantId, req.query.merchantId))
     if (req.query.settlementNo) list = list.filter(item => like(item.settlementNo, req.query.settlementNo))
     if (!numEq(null, req.query.status)) list = list.filter(item => numEq(item.status, req.query.status))

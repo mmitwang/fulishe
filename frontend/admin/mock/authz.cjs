@@ -3,8 +3,15 @@ const { menuList, orders, orderItems } = require('./seed-extra.cjs')
 
 const ALL = 'ALL'
 const MERCHANT = 'MERCHANT'
+const SUPPLIER = 'SUPPLIER'
+const DISTRIBUTOR = 'DISTRIBUTOR'
+const SELF = 'SELF'
 const SUPER_ADMIN = 'super_admin'
 const MERCHANT_ADMIN = 'merchant_admin'
+const PURCHASE = 'purchase'
+const OPERATOR = 'operator'
+const SUPPLIER_ROLE = 'supplier'
+const DISTRIBUTOR_ROLE = 'distributor'
 
 const respondError = (res, status, message) => res.status(status).json({ code: status, message, msg: message, data: null })
 const unauthorized = (res, message = '登录状态无效，请重新登录') => respondError(res, 401, message)
@@ -36,8 +43,14 @@ function createAuthz(jwt, secretKey) {
     const roleCodes = userRoles.map(role => role.roleCode)
     const roleNames = userRoles.map(role => role.roleName)
     const tenant = tenants.find(item => item.id === Number(user.tenantId)) || null
-    const dataScope = userRoles.some(role => role.roleCode === SUPER_ADMIN || role.dataScope === ALL) ? ALL : MERCHANT
-    const merchantId = dataScope === MERCHANT ? Number(user.tenantId) : null
+    const dataScopes = [...new Set(userRoles.map(role => role.dataScope || SELF))]
+    const dataScope = dataScopes.includes(ALL) || roleCodes.includes(SUPER_ADMIN) ? ALL
+      : dataScopes.includes(MERCHANT) ? MERCHANT
+        : dataScopes.includes(SUPPLIER) ? SUPPLIER
+          : dataScopes.includes(DISTRIBUTOR) ? DISTRIBUTOR : SELF
+    const merchantId = dataScopes.includes(MERCHANT) ? Number(user.tenantId) : null
+    const supplierId = user.supplierId == null ? null : Number(user.supplierId)
+    const distributorId = user.distributorId == null ? null : Number(user.distributorId)
     return {
       user,
       tenant,
@@ -47,8 +60,11 @@ function createAuthz(jwt, secretKey) {
       roleNames,
       permissions: permissionsForRoles(userRoles),
       dataScope,
+      dataScopes,
       merchantId,
-      merchantName: dataScope === MERCHANT && tenant ? tenant.tenantName : ''
+      supplierId,
+      distributorId,
+      merchantName: merchantId != null && tenant ? tenant.tenantName : ''
     }
   }
 
@@ -72,7 +88,10 @@ function createAuthz(jwt, secretKey) {
       roleCodes: auth.roleCodes,
       permissions: auth.permissions,
       dataScope: auth.dataScope,
+      dataScopes: auth.dataScopes,
       merchantId: auth.merchantId,
+      supplierId: auth.supplierId,
+      distributorId: auth.distributorId,
       merchantName: auth.merchantName
     }
   }
@@ -119,6 +138,20 @@ function createAuthz(jwt, secretKey) {
     next()
   }
 
+  const requireAnyPermission = (...permissions) => (req, res, next) => {
+    if (!req.auth) return unauthorized(res, '请先登录')
+    if (!permissions.some(permission => hasPermission(req.auth, permission))) {
+      return forbidden(res, `缺少权限：${permissions.join(' 或 ')}`)
+    }
+    next()
+  }
+
+  const requireAnyRole = (...roleCodes) => (req, res, next) => {
+    if (!req.auth) return unauthorized(res, '请先登录')
+    if (!roleCodes.some(roleCode => req.auth.roleCodes.includes(roleCode))) return forbidden(res, '当前角色无权执行此操作')
+    next()
+  }
+
   const requireSuperAdmin = (req, res, next) => {
     if (!req.auth) return unauthorized(res, '请先登录')
     if (!req.auth.roleCodes.includes(SUPER_ADMIN)) return forbidden(res, '仅系统管理员可执行此操作')
@@ -133,10 +166,34 @@ function createAuthz(jwt, secretKey) {
 
   const scopeMerchant = (auth, list, merchantIdOf = item => item.merchantId) => {
     if (auth.dataScope === ALL) return [...list]
+    if (!auth.dataScopes.includes(MERCHANT) || auth.merchantId == null) return []
     return list.filter(item => Number(merchantIdOf(item)) === Number(auth.merchantId))
   }
 
-  const assertMerchantAccess = (auth, merchantId) => auth.dataScope === ALL || Number(merchantId) === Number(auth.merchantId)
+  // 供应链资源按商户与供应商归属取并集，混合角色也不会退化成全量数据。
+  const scopeSupplier = (auth, list, supplierIdOf = item => item.supplierId) => {
+    if (auth.dataScope === ALL) return [...list]
+    const canUseMerchant = auth.dataScopes.includes(MERCHANT) && auth.merchantId != null
+    const canUseSupplier = auth.roleCodes.includes(SUPPLIER_ROLE) && auth.supplierId != null
+    return list.filter(item =>
+      (canUseMerchant && Number(item.merchantId) === Number(auth.merchantId)) ||
+      (canUseSupplier && Number(supplierIdOf(item)) === Number(auth.supplierId))
+    )
+  }
+
+  const scopeDistributor = (auth, list, distributorIdOf = item => item.distributorId ?? item.id) => {
+    if (auth.dataScope === ALL) return [...list]
+    if (!auth.roleCodes.includes(DISTRIBUTOR_ROLE) || auth.distributorId == null) return []
+    return list.filter(item => Number(distributorIdOf(item)) === Number(auth.distributorId))
+  }
+
+  const assertMerchantAccess = (auth, merchantId) => auth.dataScope === ALL || (
+    auth.dataScopes.includes(MERCHANT) && auth.merchantId != null && Number(merchantId) === Number(auth.merchantId)
+  )
+  const assertSupplierAccess = (auth, record) => auth.dataScope === ALL || scopeSupplier(auth, [record]).length === 1
+  const assertDistributorAccess = (auth, distributorId) => auth.dataScope === ALL || (
+    auth.roleCodes.includes(DISTRIBUTOR_ROLE) && Number(distributorId) === Number(auth.distributorId)
+  )
 
   const getOrderItems = order => orderItems.filter(item =>
     item.orderId === order.id || (item.orderNo && item.orderNo === order.orderNo)
@@ -194,13 +251,19 @@ function createAuthz(jwt, secretKey) {
   return {
     authenticate,
     requirePermission,
+    requireAnyPermission,
+    requireAnyRole,
     requireSuperAdmin,
     hasPermission,
     signToken,
     getUserInfo,
     getAccountRejection,
     scopeMerchant,
+    scopeSupplier,
+    scopeDistributor,
     assertMerchantAccess,
+    assertSupplierAccess,
+    assertDistributorAccess,
     getOrderItems,
     getOrderMerchantIds,
     getOrderMerchantFields,
@@ -213,4 +276,8 @@ function createAuthz(jwt, secretKey) {
   }
 }
 
-module.exports = { createAuthz, extractToken, respondError, ALL, MERCHANT, SUPER_ADMIN, MERCHANT_ADMIN }
+module.exports = {
+  createAuthz, extractToken, respondError,
+  ALL, MERCHANT, SUPPLIER, DISTRIBUTOR, SELF,
+  SUPER_ADMIN, MERCHANT_ADMIN, PURCHASE, OPERATOR, SUPPLIER_ROLE, DISTRIBUTOR_ROLE
+}

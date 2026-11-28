@@ -3,7 +3,7 @@
     <div class="login-box">
       <div class="login-left">
         <div class="brand">
-          <el-icon class="logo"><Gift /></el-icon>
+          <div class="logo">福</div>
           <h1>福礼社</h1>
           <p>企业福利采购平台</p>
         </div>
@@ -114,6 +114,18 @@ const demoUserGroups = computed(() => [
   {
     label: '商户管理员',
     users: demoUsers.value.filter(user => user.roleCodes?.includes('merchant_admin'))
+  },
+  {
+    label: '采购与运营',
+    users: demoUsers.value.filter(user => user.roleCodes?.some(role => ['purchase', 'operator'].includes(role)))
+  },
+  {
+    label: '供应商',
+    users: demoUsers.value.filter(user => user.roleCodes?.includes('supplier'))
+  },
+  {
+    label: '分销商',
+    users: demoUsers.value.filter(user => user.roleCodes?.includes('distributor'))
   }
 ].filter(group => group.users.length > 0))
 
@@ -213,7 +225,7 @@ onMounted(() => {
 
 .login-left {
   width: 40%;
-  background: linear-gradient(135deg, #409eff 0%, #337ecc 100%);
+  background: linear-gradient(135deg, #c8102e 0%, #7a0c1e 100%);
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -226,8 +238,16 @@ onMounted(() => {
     .logo {
       width: 80px;
       height: 80px;
-      font-size: 60px;
-      margin-bottom: 20px;
+      margin: 0 auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.16);
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      font-size: 44px;
+      font-weight: 700;
+      font-family: 'STKaiti', 'KaiTi', 'Songti SC', 'SimSun', serif;
     }
 
     h1 {

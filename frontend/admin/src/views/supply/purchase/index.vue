@@ -14,7 +14,7 @@
         <el-form-item label="采购单号">
           <el-input v-model="query.purchaseNo" placeholder="请输入采购单号" clearable style="width: 200px" />
         </el-form-item>
-        <el-form-item label="供应商">
+        <el-form-item label="供应商" v-if="!isSupplier">
           <el-select v-model="query.supplierId" placeholder="全部供应商" clearable style="width: 220px">
             <el-option v-for="s in suppliers" :key="s.id" :label="s.supplierName" :value="s.id" />
           </el-select>
@@ -30,7 +30,8 @@
         </el-form-item>
       </el-form>
 
-      <div class="toolbar">
+      <el-alert v-if="isSupplier" title="供应商仅可查看本人采购单并确认接单，入库由商户执行。" type="info" :closable="false" class="role-alert" />
+      <div class="toolbar" v-if="canCreate">
         <el-button type="primary" @click="dialogVisible = true"><el-icon><Plus /></el-icon> 新建采购单</el-button>
       </div>
 
@@ -64,13 +65,33 @@
           </template>
         </el-table-column>
         <el-table-column prop="expectedDate" label="预计到货" width="120" />
-        <el-table-column prop="createTime" label="创建时间" width="170" />
-        <el-table-column label="操作" width="190" fixed="right" align="center">
+        <el-table-column label="物流" min-width="190">
           <template #default="{ row }">
-            <el-button v-if="row.status === 0" link type="primary" @click="changeStatus(row, 1)">审核通过</el-button>
-            <el-button v-if="row.status === 1" link type="success" @click="changeStatus(row, 3)">确认入库</el-button>
-            <el-button v-if="row.status === 2" link type="success" @click="changeStatus(row, 3)">完成入库</el-button>
-            <el-button link type="info">详情</el-button>
+            <div v-if="row.trackingNo">
+              <div>{{ row.logisticsCompany || row.carrier }}</div>
+              <div class="logistics-no">{{ row.trackingNo }}</div>
+            </div>
+            <span v-else class="done-text">未发货</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="签收" min-width="170">
+          <template #default="{ row }">
+            <div v-if="row.receivedTime">
+              <div>{{ row.receivedBy }}</div>
+              <div class="logistics-no">{{ row.receivedTime }}</div>
+            </div>
+            <span v-else class="done-text">未签收</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="createTime" label="创建时间" width="170" />
+        <el-table-column label="操作" width="240" fixed="right" align="center">
+          <template #default="{ row }">
+            <el-button v-if="canAudit && row.status === 0" :loading="changingId === row.id" link type="primary" @click="changeStatus(row, 1)">审核通过</el-button>
+            <el-button v-if="isSupplier && row.status === 1" :loading="changingId === row.id" link type="success" @click="changeStatus(row, 2)">确认接单</el-button>
+            <el-button v-if="(isSupplier || canStock) && row.status === 2 && !row.trackingNo" link type="warning" @click="openShip(row)">发货</el-button>
+            <el-button v-if="canStock && row.status === 2 && row.trackingNo && !row.receivedTime" link type="primary" @click="receive(row)">签收</el-button>
+            <el-button v-if="canStock && row.status === 2" :loading="changingId === row.id" link type="success" @click="changeStatus(row, 3)">确认入库</el-button>
+            <span v-if="row.status === 3" class="done-text">已完成</span>
           </template>
         </el-table-column>
       </el-table>
@@ -122,7 +143,24 @@
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="submit">提交采购单</el-button>
+        <el-button type="primary" :loading="submitting" @click="submit">提交采购单</el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog v-model="shipDialog" title="采购发货" width="460px">
+      <el-form :model="shipForm" label-width="100px">
+        <el-form-item label="物流公司" required>
+          <el-select v-model="shipForm.carrier" placeholder="请选择物流公司" style="width: 100%">
+            <el-option v-for="c in carriers" :key="c" :label="c" :value="c" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="物流单号" required>
+          <el-input v-model="shipForm.trackingNo" placeholder="请输入物流单号" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="shipDialog = false">取消</el-button>
+        <el-button type="primary" :loading="shipping" @click="submitShip">确认发货</el-button>
       </template>
     </el-dialog>
   </div>
@@ -130,15 +168,22 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import request, { cachedGet } from '@/utils/request'
+import { useAuthStore } from '@/stores/auth'
+
+const authStore = useAuthStore()
+const roleCodes = computed(() => authStore.userInfo?.roleCodes || [])
+const isSupplier = computed(() => roleCodes.value.includes('supplier') && !roleCodes.value.includes('super_admin'))
+const canAudit = computed(() => roleCodes.value.some(role => ['super_admin', 'merchant_admin'].includes(role)))
+const canStock = computed(() => roleCodes.value.some(role => ['super_admin', 'merchant_admin', 'purchase'].includes(role)))
+const canCreate = canStock
 
 const statusMap: Record<number, { text: string; type: 'primary' | 'success' | 'warning' | 'info' | 'danger' }> = {
   0: { text: '待审核', type: 'warning' },
-  1: { text: '已下单', type: 'primary' },
-  2: { text: '部分入库', type: 'info' },
-  3: { text: '已完成', type: 'success' },
-  4: { text: '已取消', type: 'danger' }
+  1: { text: '待供应商接单', type: 'primary' },
+  2: { text: '待入库', type: 'info' },
+  3: { text: '已完成', type: 'success' }
 }
 const warehouses = ['杭州中心仓', '上海前置仓', '成都区域仓']
 const loading = ref(false)
@@ -149,7 +194,14 @@ const query = reactive({ purchaseNo: '', supplierId: '', status: '' })
 const pagination = reactive({ current: 1, size: 10, total: 0 })
 const overview = ref<any>({ stats: {} })
 const dialogVisible = ref(false)
+const submitting = ref(false)
+const changingId = ref<number | null>(null)
 const form = reactive<any>({ supplierId: null, warehouse: '杭州中心仓', expectedDate: '', remark: '', items: [{ spuId: null, quantity: 100, price: 0 }] })
+const carriers = ['顺丰速运', '京东物流', '中通快递', '德邦快递']
+const shipDialog = ref(false)
+const shipping = ref(false)
+const shipRow = ref<any>(null)
+const shipForm = reactive({ carrier: '顺丰速运', trackingNo: '' })
 
 const stats = computed(() => [
   { label: '采购总额', value: `¥${((overview.value.stats.purchaseTotal || 0) / 10000).toFixed(1)} 万`, cls: '' },
@@ -172,14 +224,16 @@ const fetchData = async () => {
 }
 
 const fetchOptions = async () => {
-  const [s, p, o] = await Promise.all([
+  const [s, o] = await Promise.all([
     cachedGet('/supply/supplier/page', { current: 1, size: 100 }),
-    cachedGet('/product/spu/page', { current: 1, size: 100 }),
     cachedGet('/supply/overview')
   ])
   suppliers.value = s.records
-  products.value = p.records
   overview.value = o
+  if (!isSupplier.value) {
+    const p = await cachedGet('/product/spu/page', { current: 1, size: 100 })
+    products.value = authStore.isPlatformAdmin ? p.records : p.records.filter((item: any) => item.merchantId === authStore.userInfo?.merchantId)
+  }
 }
 
 const search = () => {
@@ -208,19 +262,57 @@ const submit = async () => {
     price: i.price
   }))
   if (!items.length) return ElMessage.warning('请添加采购商品')
-  await request.post('/supply/purchase', { ...form, items })
-  ElMessage.success('采购单已创建')
-  dialogVisible.value = false
-  form.items = [{ spuId: null, quantity: 100, price: 0 }]
-  fetchData()
-  fetchOptions()
+  submitting.value = true
+  try {
+    await request.post('/supply/purchase', { ...form, items })
+    ElMessage.success('采购单已创建')
+    dialogVisible.value = false
+    form.items = [{ spuId: null, quantity: 100, price: 0 }]
+    await Promise.all([fetchData(), fetchOptions()])
+  } finally {
+    submitting.value = false
+  }
 }
 
 const changeStatus = async (row: any, status: number) => {
-  await request.put(`/supply/purchase/${row.id}/status`, { status })
-  ElMessage.success(status === 3 ? '已完成入库，库存已更新' : '状态已更新')
-  fetchData()
-  fetchOptions()
+  changingId.value = row.id
+  try {
+    await request.put(`/supply/purchase/${row.id}/status`, { status })
+    ElMessage.success(status === 3 ? '已完成入库，库存仅更新一次' : status === 2 ? '已确认接单，等待商户入库' : '审核通过，等待供应商接单')
+    await Promise.all([fetchData(), fetchOptions()])
+  } finally {
+    changingId.value = null
+  }
+}
+
+const openShip = (row: any) => {
+  shipRow.value = row
+  shipForm.carrier = '顺丰速运'
+  shipForm.trackingNo = ''
+  shipDialog.value = true
+}
+
+const submitShip = async () => {
+  if (!shipForm.trackingNo.trim()) return ElMessage.warning('请填写物流单号')
+  shipping.value = true
+  try {
+    await request.post(`/supply/purchase/${shipRow.value.id}/ship`, { ...shipForm })
+    ElMessage.success('发货信息已回传')
+    shipDialog.value = false
+    await fetchData()
+  } finally {
+    shipping.value = false
+  }
+}
+
+const receive = async (row: any) => {
+  const { value } = await ElMessageBox.prompt('请确认签收人', '采购签收', {
+    inputValue: authStore.userInfo?.realName || '',
+    inputValidator: (value: string) => (value && value.trim() ? true : '签收人不能为空')
+  })
+  await request.post(`/supply/purchase/${row.id}/receive`, { receiver: value })
+  ElMessage.success('已签收')
+  await fetchData()
 }
 
 onMounted(() => {
@@ -253,6 +345,17 @@ onMounted(() => {
 }
 .table-card {
   border-radius: 14px;
+}
+.role-alert {
+  margin-bottom: 14px;
+}
+.done-text {
+  color: #909399;
+  font-size: 13px;
+}
+.logistics-no {
+  color: #909399;
+  font-size: 12px;
 }
 .toolbar {
   margin-bottom: 14px;

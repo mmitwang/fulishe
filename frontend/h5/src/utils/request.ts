@@ -1,4 +1,5 @@
-import axios, { AxiosInstance } from 'axios'
+import axios from 'axios'
+import type { AxiosInstance, AxiosRequestConfig } from 'axios'
 import { showToast } from 'vant'
 
 interface ApiResponse<T = any> {
@@ -7,10 +8,18 @@ interface ApiResponse<T = any> {
   data: T
 }
 
-const request: AxiosInstance = axios.create({
+type RequestClient = Omit<AxiosInstance, 'get' | 'post' | 'put' | 'delete' | 'patch'> & {
+  get<T = any>(url: string, config?: AxiosRequestConfig): Promise<T>
+  post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>
+  put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>
+  delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<T>
+  patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>
+}
+
+const request = axios.create({
   baseURL: '/api',
   timeout: 30000
-})
+}) as unknown as RequestClient
 
 request.interceptors.request.use(
   (config) => {

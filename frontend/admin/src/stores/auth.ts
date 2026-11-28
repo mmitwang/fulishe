@@ -19,8 +19,11 @@ export interface AuthUserInfo {
   roleNames: string[]
   roleCodes: string[]
   permissions: string[]
-  dataScope: 'ALL' | 'MERCHANT'
+  dataScope: 'ALL' | 'MERCHANT' | 'SUPPLIER' | 'DISTRIBUTOR' | 'SELF'
+  dataScopes: Array<'ALL' | 'MERCHANT' | 'SUPPLIER' | 'DISTRIBUTOR' | 'SELF'>
   merchantId: number | null
+  supplierId: number | null
+  distributorId: number | null
   merchantName: string
 }
 
@@ -39,6 +42,9 @@ export const useAuthStore = defineStore('auth', () => {
 
   const hasPermission = (permission?: string) => {
     if (!permission) return true
+    const roles = userInfo.value?.roleCodes || []
+    if (permission.startsWith('distributor:') && !roles.includes('distributor')) return false
+    if (permission === 'merchant:profile' && !roles.includes('merchant_admin')) return false
     const permissions = userInfo.value?.permissions || []
     return permissions.includes('*:*:*') || permissions.includes(permission)
   }
@@ -47,7 +53,14 @@ export const useAuthStore = defineStore('auth', () => {
     Boolean(userInfo.value?.roleCodes?.includes('super_admin'))
   )
 
-  const homePath = computed(() => isPlatformAdmin.value ? '/dashboard' : '/merchant/dashboard')
+  const homePath = computed(() => {
+    const roles = userInfo.value?.roleCodes || []
+    if (roles.includes('super_admin')) return '/dashboard'
+    if (roles.includes('distributor')) return '/distributor/selection'
+    if (roles.includes('supplier') || roles.includes('purchase')) return '/supply/purchase'
+    if (roles.includes('operator')) return '/product/spu'
+    return '/merchant/dashboard'
+  })
 
   const applyAuthResponse = (data: AuthResponse) => {
     token.value = data.token

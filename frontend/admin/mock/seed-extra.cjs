@@ -180,6 +180,44 @@ refunds.push(
   { id: refunds.length + 2, refundNo: 'REF202600902', payNo: payRecords[5].payNo, orderNo: payRecords[5].orderNo, tenantId: 1, refundAmount: 99, payAmount: 99, refundStatus: 0, refundReason: '重复下单，申请退款', thirdRefundNo: '', refundTime: null, createTime: timeAgo(1, 10) }
 )
 
+/* ---------------- 发票 ---------------- */
+// 发票与订单勾稽：仅已支付且未取消的订单可开票，merchantId 由订单商品归属推导
+const invoices = orders
+  .filter(o => Number(o.payStatus) === 1 && [1, 2, 3].includes(Number(o.orderStatus)))
+  .slice(0, 3)
+  .map((o, i) => {
+    const item = orderItems.find(it => it.orderId === o.id)
+    const product = products.find(p => p.id === Number(item && item.spuId))
+    const merchantId = product ? product.merchantId : null
+    const tenant = tenants.find(t => t.id === Number(merchantId)) || {}
+    const taxRate = 0.06
+    const status = i < 2 ? 1 : 0
+    return {
+      id: i + 1,
+      invoiceNo: status === 1 ? `INV2026${String(800100 + i)}` : '',
+      orderNo: o.orderNo,
+      orderId: o.id,
+      merchantId,
+      merchantName: tenant.tenantName || '',
+      userId: o.userId,
+      titleType: i % 2 === 0 ? 2 : 1,
+      invoiceType: i % 3 === 0 ? 2 : 1,
+      buyerName: i % 2 === 0 ? (tenant.tenantName || '企业客户') : o.userName,
+      taxNo: i % 2 === 0 ? `91330100MA2XXXXXX${i}` : '',
+      email: `invoice${i + 1}@fulishe.cn`,
+      amount: o.payAmount,
+      taxRate,
+      taxAmount: Number((o.payAmount * taxRate / (1 + taxRate)).toFixed(2)),
+      status,
+      applyTime: o.createTime,
+      issueTime: status === 1 ? o.payTime : null,
+      redFlushTime: null,
+      redFlushReason: '',
+      redFlushNo: '',
+      remark: ''
+    }
+  })
+
 /* ---------------- 福礼社卡（模拟资金账本） ---------------- */
 const fuliAccounts = []
 const fuliFlows = []
@@ -198,14 +236,20 @@ const suppliers = [
   { id: 7, supplierCode: 'SUP007', supplierName: '北京同仁堂健康药业', contactPerson: '李药', contactPhone: '13900010007', category: '健康关怀', level: 'A', status: 1, address: '北京市大兴区中关村科技园大兴生物医药基地', creditScore: 98, cooperationYears: 7, settledAmount: 890000, createTime: timeAgo(150) },
   { id: 8, supplierCode: 'SUP008', supplierName: '宁波得力办公用品有限公司', contactPerson: '王办', contactPhone: '13900010008', category: '办公用品', level: 'B', status: 1, address: '浙江省宁波市宁海县得力工业园', creditScore: 90, cooperationYears: 2, settledAmount: 156000, createTime: timeAgo(120) }
 ]
+suppliers.forEach((supplier, index) => {
+  supplier.merchantId = index % 2 === 0 ? 2 : 3
+  supplier.merchantName = (tenants.find(tenant => tenant.id === supplier.merchantId) || {}).tenantName || ''
+})
 
 const warehouses = ['杭州中心仓', '上海前置仓', '成都区域仓']
 const purchaseOrders = []
 const poStatusPool = [3, 2, 1, 1, 3, 0, 2, 3, 1, 0, 3, 2, 1, 3, 0, 2, 3, 1]
 for (let i = 0; i < 18; i++) {
-  const supplier = suppliers[i % suppliers.length]
-  const p1 = products[(i * 2) % products.length]
-  const p2 = products[(i * 5 + 3) % products.length]
+  const p1 = products[i % products.length]
+  let p2 = products[(i * 5 + 3) % products.length]
+  if (p2.merchantId !== p1.merchantId) p2 = products[(products.indexOf(p2) + 1) % products.length]
+  const merchantSuppliers = suppliers.filter(item => item.merchantId === p1.merchantId)
+  const supplier = merchantSuppliers[Math.floor(i / 2) % merchantSuppliers.length]
   const qty1 = 100 + i * 10
   const items = [{ spuId: p1.id, spuName: p1.spuName, quantity: qty1, price: p1.costPrice }]
   let total = p1.costPrice * qty1
@@ -216,6 +260,8 @@ for (let i = 0; i < 18; i++) {
   purchaseOrders.push({
     id: i + 1,
     purchaseNo: `PO2026${String(400100 + i)}`,
+    merchantId: p1.merchantId,
+    merchantName: p1.merchantName,
     supplierId: supplier.id,
     supplierName: supplier.supplierName,
     items,
@@ -236,6 +282,8 @@ const inventory = products.map((p, i) => {
   const available = stock - locked
   return {
     id: i + 1,
+    merchantId: p.merchantId,
+    merchantName: p.merchantName,
     spuId: p.id,
     spuName: p.spuName,
     image: p.image,
@@ -253,17 +301,20 @@ const inventory = products.map((p, i) => {
 const carriers = ['顺丰速运', '京东物流', '中通快递', '德邦快递']
 const shipments = []
 for (let i = 0; i < 16; i++) {
-  const order = orders.find(o => o.orderStatus >= 2) || orders[i]
+  const order = orders[(i * 3) % orders.length]
+  const orderItem = orderItems.find(item => item.orderId === order.id || item.orderNo === order.orderNo)
+  const shipmentProduct = orderItem ? products.find(item => item.id === Number(orderItem.spuId)) : null
   const status = i % 4 === 0 ? 0 : i % 4 === 1 ? 1 : 2
   shipments.push({
     id: i + 1,
+    merchantId: shipmentProduct ? shipmentProduct.merchantId : null,
     shipmentNo: `SH2026${String(500100 + i)}`,
-    orderNo: orders[(i * 3) % orders.length].orderNo,
+    orderNo: order.orderNo,
     carrier: carriers[i % carriers.length],
     trackingNo: `SF${Date.now()}${String(1000 + i)}`,
-    receiver: orders[(i * 3) % orders.length].userName,
-    mobile: orders[(i * 3) % orders.length].mobile,
-    address: orders[(i * 3) % orders.length].address,
+    receiver: order.userName,
+    mobile: order.mobile,
+    address: order.address,
     status,
     shipTime: status >= 1 ? timeAgo(10 - (i % 8), 9 + (i % 8)) : null,
     arrivalTime: status === 2 ? timeAgo(Math.max(0, 8 - (i % 8)), 15) : null,
@@ -457,7 +508,20 @@ const menuList = [
 
 menuList.push(
   { id: 32, parentId: 0, menuName: '商户工作台', menuType: 1, path: '/merchant/dashboard', component: 'merchant/dashboard/index', icon: 'DataAnalysis', sort: 0, status: 1, createTime: timeAgo(300) },
-  { id: 33, parentId: 0, menuName: '商户资料', menuType: 1, path: '/merchant/profile', component: 'merchant/profile/index', icon: 'Shop', sort: 9, status: 1, createTime: timeAgo(300) }
+  { id: 33, parentId: 0, menuName: '商户资料', menuType: 1, path: '/merchant/profile', component: 'merchant/profile/index', icon: 'Shop', sort: 9, status: 1, createTime: timeAgo(300) },
+  { id: 34, parentId: 0, menuName: '分销管理', menuType: 1, path: '/distribution', component: 'Layout', icon: 'Share', sort: 8, status: 1, createTime: timeAgo(120) },
+  { id: 35, parentId: 34, menuName: '佣金规则', menuType: 1, path: '/distribution/rules', component: 'distribution/rules/index', icon: 'SetUp', sort: 1, status: 1, createTime: timeAgo(120) },
+  { id: 36, parentId: 34, menuName: '分销商管理', menuType: 1, path: '/distribution/distributors', component: 'distribution/distributors/index', icon: 'UserFilled', sort: 2, status: 1, createTime: timeAgo(120) },
+  { id: 37, parentId: 34, menuName: '推广订单', menuType: 1, path: '/distribution/orders', component: 'distribution/orders/index', icon: 'Document', sort: 3, status: 1, createTime: timeAgo(120) },
+  { id: 38, parentId: 0, menuName: '分销商工作台', menuType: 1, path: '/distributor', component: 'Layout', icon: 'Promotion', sort: 0, status: 1, createTime: timeAgo(120) },
+  { id: 39, parentId: 38, menuName: '选品中心', menuType: 1, path: '/distributor/selection', component: 'distributor/selection/index', icon: 'Goods', sort: 1, status: 1, createTime: timeAgo(120) },
+  { id: 40, parentId: 38, menuName: '分享链接', menuType: 1, path: '/distributor/shares', component: 'distributor/shares/index', icon: 'Link', sort: 2, status: 1, createTime: timeAgo(120) },
+  { id: 41, parentId: 38, menuName: '推广与佣金', menuType: 1, path: '/distributor/orders', component: 'distributor/orders/index', icon: 'Money', sort: 3, status: 1, createTime: timeAgo(120) },
+  { id: 42, parentId: 0, menuName: '营销管理', menuType: 1, path: '/promotion', component: 'Layout', icon: 'Present', sort: 9, status: 1, createTime: timeAgo(100) },
+  { id: 43, parentId: 42, menuName: '满减促销', menuType: 1, path: '/promotion/full-reduction', component: 'promotion/full-reduction/index', icon: 'Discount', sort: 1, status: 1, createTime: timeAgo(100) },
+  { id: 44, parentId: 12, menuName: '发票管理', menuType: 1, path: '/pay/invoice', component: 'pay/invoice/index', icon: 'Tickets', sort: 4, status: 1, createTime: timeAgo(90) },
+  { id: 45, parentId: 12, menuName: '平台抽佣', menuType: 1, path: '/pay/commission', component: 'pay/commission/index', icon: 'Money', sort: 5, status: 1, createTime: timeAgo(90) },
+  { id: 46, parentId: 26, menuName: '数据备份', menuType: 1, path: '/system/backup', component: 'system/backup/index', icon: 'FolderOpened', sort: 6, status: 1, createTime: timeAgo(30) }
 )
 
 const menuPermissions = {
@@ -467,7 +531,12 @@ const menuPermissions = {
   16: 'chain:manage', 17: 'chain:tx', 18: 'chain:block', 19: 'chain:trace',
   20: 'supply:manage', 21: 'supply:supplier', 22: 'supply:purchase', 23: 'supply:inventory', 24: 'supply:shipment', 25: 'settlement',
   26: 'system:manage', 27: 'system:user', 28: 'system:role', 29: 'system:dept', 30: 'system:menu', 31: 'system:tenant',
-  32: 'merchant:dashboard', 33: 'merchant:profile'
+  32: 'merchant:dashboard', 33: 'merchant:profile',
+  34: 'distribution:manage', 35: 'distribution:rule', 36: 'distribution:distributor', 37: 'distribution:order',
+  38: 'distributor:workspace', 39: 'distributor:selection', 40: 'distributor:share', 41: 'distributor:order',
+  42: 'promotion:manage', 43: 'promotion:fullreduction',
+  44: 'pay:invoice', 45: 'pay:commission',
+  46: 'system:backup'
 }
 menuList.forEach(menu => { menu.permission = menuPermissions[menu.id] || '' })
 
@@ -475,7 +544,7 @@ module.exports = {
   couponTemplates, couponBatches, coupons, orders, orderItems, payRecords, refunds,
   suppliers, purchaseOrders, inventory, shipments, settlements,
   traceRecords, chainBlocks, chainTxs, chainMeta,
-  carts, banners, quickEntries, notices, menuList,
+  carts, banners, quickEntries, notices, menuList, invoices,
   addresses, warehouses, carriers,
   fuliAccounts, fuliFlows, fuliRecharges, fuliTransfers, fuliOperations
 }

@@ -28,6 +28,11 @@
     </el-row>
 
     <el-card class="table-card">
+      <div class="stock-toolbar">
+        <el-button type="primary" plain @click="openReservations">库存预占明细</el-button>
+        <el-button type="warning" plain :loading="releasing" @click="releaseExpired">释放超时预占</el-button>
+        <span class="toolbar-tip">下单锁定（30 分钟）→ 支付扣减 → 取消/超时释放 → 退款回补</span>
+      </div>
       <el-form :inline="true" :model="query" class="query-form">
         <el-form-item label="商品">
           <el-input v-model="query.keyword" placeholder="商品名称 / SKU 编码" clearable style="width: 240px" />
@@ -98,6 +103,31 @@
       />
     </el-card>
 
+    <el-dialog v-model="reservationVisible" title="库存预占明细" width="900px">
+      <div class="reserve-summary">
+        <span>锁定中 {{ reserveSummary.lockedReservationCount }} 笔</span>
+        <span>锁定数量 {{ reserveSummary.lockedQuantity }}</span>
+        <span>已扣减 {{ reserveSummary.committedCount }} 笔</span>
+        <span>已释放 {{ reserveSummary.releasedCount }} 笔</span>
+        <span>锁定时长 {{ reserveSummary.lockMinutes }} 分钟</span>
+      </div>
+      <el-table v-loading="reserveLoading" :data="reservations" border stripe size="small" max-height="420">
+        <el-table-column prop="reservationNo" label="预占单号" min-width="170" />
+        <el-table-column prop="orderNo" label="订单号" min-width="170" />
+        <el-table-column prop="spuName" label="商品" min-width="200" />
+        <el-table-column prop="quantity" label="数量" width="80" align="right" />
+        <el-table-column label="状态" width="100" align="center">
+          <template #default="{ row }">
+            <el-tag :type="row.status === 'LOCKED' ? 'warning' : row.status === 'COMMITTED' ? 'success' : 'info'" size="small">
+              {{ row.status === 'LOCKED' ? '锁定中' : row.status === 'COMMITTED' ? '已扣减' : '已释放' }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="expireTime" label="预占到期" min-width="165" />
+        <el-table-column prop="createTime" label="创建时间" min-width="165" />
+      </el-table>
+    </el-dialog>
+
     <el-dialog v-model="adjustVisible" title="调整库存" width="460px">
       <div v-if="current" class="adjust-body">
         <div class="adjust-product">
@@ -143,6 +173,39 @@ const pagination = reactive({ current: 1, size: 10, total: 0 })
 const adjustVisible = ref(false)
 const current = ref<any>(null)
 const delta = ref(0)
+
+const reservationVisible = ref(false)
+const reserveLoading = ref(false)
+const releasing = ref(false)
+const reservations = ref<any[]>([])
+const reserveSummary = ref<any>({ lockedReservationCount: 0, lockedQuantity: 0, committedCount: 0, releasedCount: 0, lockMinutes: 30 })
+
+const openReservations = async () => {
+  reservationVisible.value = true
+  reserveLoading.value = true
+  try {
+    const [summary, page] = await Promise.all([
+      request.get('/admin/stock/reservation/summary'),
+      request.get('/admin/stock/reservation/page', { params: { current: 1, size: 50 } })
+    ])
+    reserveSummary.value = { ...reserveSummary.value, ...(summary || {}) }
+    reservations.value = page?.records || []
+  } finally {
+    reserveLoading.value = false
+  }
+}
+
+const releaseExpired = async () => {
+  releasing.value = true
+  try {
+    const result = await request.post('/admin/stock/reservation/release-expired')
+    ElMessage.success(result?.releasedOrders ? `已释放 ${result.releasedOrders} 个超时订单的预占库存` : '暂无超时预占')
+    await fetchData()
+    if (reservationVisible.value) await openReservations()
+  } finally {
+    releasing.value = false
+  }
+}
 
 const fetchData = async () => {
   loading.value = true
@@ -219,6 +282,24 @@ onMounted(() => {
 }
 .table-card {
   border-radius: 14px;
+}
+.stock-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  .toolbar-tip {
+    color: #8b96ad;
+    font-size: 12px;
+  }
+}
+.reserve-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 12px;
+  font-size: 12.5px;
+  color: #5a6685;
 }
 .product-cell {
   display: flex;

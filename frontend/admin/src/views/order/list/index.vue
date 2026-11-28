@@ -168,7 +168,9 @@ const getOrderStatusText = (status: number) => {
     1: '已支付',
     2: '已发货',
     3: '已完成',
-    4: '已取消'
+    4: '已取消',
+    5: '售后中',
+    6: '已退款'
   }
   return map[status] || '未知'
 }
@@ -181,7 +183,9 @@ const getOrderStatusTagType = (status: number) => {
     1: 'success',
     2: 'info',
     3: 'success',
-    4: 'danger'
+    4: 'danger',
+    5: 'warning',
+    6: 'info'
   }
   return map[status] || 'info'
 }

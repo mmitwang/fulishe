@@ -47,10 +47,10 @@ const switchAccount = async () => {
   text-align: center;
   background: #fff;
   border-radius: 16px;
-  box-shadow: 0 16px 48px rgba(31, 43, 82, 0.08);
+  box-shadow: 0 16px 48px rgba(122, 12, 30, 0.08);
 
   .code {
-    color: #2f5fd0;
+    color: #c8102e;
     font-size: 88px;
     font-weight: 800;
     line-height: 1;
@@ -59,7 +59,7 @@ const switchAccount = async () => {
 
   h1 {
     margin: 24px 0 12px;
-    color: #1f2b52;
+    color: #7a0c1e;
     font-size: 24px;
   }
 

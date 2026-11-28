@@ -49,7 +49,8 @@
         </el-form-item>
       </el-form>
 
-      <div class="toolbar">
+      <el-alert v-if="isSupplier" title="当前为供应商身份，仅展示本人资料，不可管理其他供应商。" type="info" :closable="false" class="role-alert" />
+      <div class="toolbar" v-if="!isSupplier">
         <el-button type="primary" @click="openDialog()"><el-icon><Plus /></el-icon> 新增供应商</el-button>
       </div>
 
@@ -78,7 +79,7 @@
             <el-tag :type="row.status === 1 ? 'success' : 'info'" size="small">{{ row.status === 1 ? '合作中' : '已暂停' }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="180" fixed="right" align="center">
+        <el-table-column v-if="!isSupplier" label="操作" width="180" fixed="right" align="center">
           <template #default="{ row }">
             <el-button link type="primary" @click="openDialog(row)">编辑</el-button>
             <el-button link :type="row.status === 1 ? 'warning' : 'success'" @click="toggleStatus(row)">{{ row.status === 1 ? '暂停' : '恢复' }}</el-button>
@@ -137,7 +138,10 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import request from '@/utils/request'
+import { useAuthStore } from '@/stores/auth'
 
+const authStore = useAuthStore()
+const isSupplier = computed(() => Boolean(authStore.userInfo?.roleCodes?.includes('supplier') && !authStore.isPlatformAdmin))
 const categories = ['食品礼盒', '节庆礼盒', '数码家电', '茶酒饮品', '家居生活', '健康关怀', '办公用品']
 const loading = ref(false)
 const rows = ref<any[]>([])
@@ -240,6 +244,9 @@ onMounted(fetchData)
 }
 .table-card {
   border-radius: 14px;
+}
+.role-alert {
+  margin-bottom: 14px;
 }
 .query-form {
   margin-bottom: 4px;

@@ -87,7 +87,7 @@ onMounted(async () => {
   align-items: center;
   gap: 14px;
   padding: 54px 18px 24px;
-  background: linear-gradient(120deg, #1f2b52, #2f5fd0 65%, #38b6ff);
+  background: linear-gradient(120deg, #7a0c1e, #c8102e 65%, #f0556b);
   color: #fff;
   .avatar {
     width: 58px;
@@ -125,7 +125,7 @@ onMounted(async () => {
   margin: -14px 14px 0;
   border-radius: 14px;
   padding: 16px 0;
-  box-shadow: 0 6px 18px rgba(31, 43, 82, 0.08);
+  box-shadow: 0 6px 18px rgba(122, 12, 30, 0.08);
   position: relative;
   .stat {
     flex: 1;
@@ -133,7 +133,7 @@ onMounted(async () => {
     .num {
       font-size: 20px;
       font-weight: 800;
-      color: #1f2b52;
+      color: #7a0c1e;
     }
     .label {
       font-size: 11px;
@@ -145,7 +145,7 @@ onMounted(async () => {
 .menu-group {
   margin-top: 14px;
   :deep(.van-cell__left-icon) {
-    color: #2f5fd0;
+    color: #c8102e;
   }
 }
 .logout {

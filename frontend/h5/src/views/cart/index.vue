@@ -119,7 +119,7 @@ onMounted(fetchData)
 }
 .edit {
   font-size: 13px;
-  color: #2f5fd0;
+  color: #c8102e;
 }
 .tip {
   display: flex;
@@ -189,7 +189,7 @@ onMounted(fetchData)
   align-items: center;
   gap: 12px;
   padding: 0 14px;
-  box-shadow: 0 -2px 10px rgba(31, 43, 82, 0.06);
+  box-shadow: 0 -2px 10px rgba(122, 12, 30, 0.06);
   .total {
     flex: 1;
     text-align: right;

@@ -8,6 +8,7 @@
         </van-swipe-item>
       </van-swipe>
 
+      <div v-if="shareNotice" class="share-notice"><van-icon name="share-o" />{{ shareNotice }}</div>
       <div class="info-card">
         <div class="price-row">
           <div class="price"><span>¥</span>{{ currentSku?.price || product.sellPrice }}</div>
@@ -31,7 +32,7 @@
         <div class="trace-head">
           <van-icon name="shield-o" />
           <span>区块链溯源 · 已验证</span>
-          <van-tag type="success" plain size="mini">已上链</van-tag>
+          <van-tag type="success" plain>已上链</van-tag>
         </div>
         <div class="trace-body">
           <div class="step" v-for="(s, i) in product.trace.steps.slice(0, 4)" :key="i">
@@ -144,6 +145,7 @@ const router = useRouter()
 const product = ref<any>({})
 const currentSku = ref<any>(null)
 const showSku = ref(false)
+const shareNotice = ref('')
 
 const userId = () => Number(localStorage.getItem('userId') || 2)
 
@@ -159,7 +161,7 @@ const buyNow = () => {
     showSku.value = true
     return showToast('请选择规格')
   }
-  sessionStorage.setItem('checkoutItems', JSON.stringify([{ skuId: currentSku.value.id, quantity: 1, image: product.value.image, name: product.value.spuName, skuName: currentSku.value.skuName, price: currentSku.value.price }]))
+  sessionStorage.setItem('checkoutItems', JSON.stringify([{ skuId: currentSku.value.id, spuId: product.value.id, quantity: 1, image: product.value.image, name: product.value.spuName, skuName: currentSku.value.skuName, price: currentSku.value.price }]))
   router.push('/order/confirm')
 }
 
@@ -168,6 +170,24 @@ const goTrace = (code: string) => router.push(`/trace?code=${code}`)
 onMounted(async () => {
   product.value = await request.get(`/h5/product/${route.params.id}`)
   currentSku.value = product.value.skus?.[0] || null
+  const shareId = String(route.query.shareId || '')
+  if (!shareId) return
+  const key = `distributionShare:${product.value.id}`
+  try {
+    const result = await request.get('/distribution/attribution', {
+      params: { shareId, spuId: product.value.id, userId: userId() }
+    })
+    if (result.valid) {
+      localStorage.setItem(key, JSON.stringify({ shareId: result.shareId, expireTime: result.expireTime }))
+      shareNotice.value = '已记录本次推广分享，下单时将自动关联'
+    } else {
+      localStorage.removeItem(key)
+      shareNotice.value = result.reason || '分享链接已失效'
+    }
+  } catch {
+    localStorage.removeItem(key)
+    shareNotice.value = '分享校验暂不可用，仍可正常购买'
+  }
 })
 </script>
 
@@ -187,6 +207,17 @@ onMounted(async () => {
     height: 100%;
     object-fit: cover;
   }
+}
+.share-notice {
+  margin: 10px 12px 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fdeef0;
+  color: #c8102e;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 .info-card {
   background: #fff;
@@ -217,7 +248,7 @@ onMounted(async () => {
   .name {
     font-size: 16px;
     font-weight: 600;
-    color: #1f2b52;
+    color: #7a0c1e;
     margin-top: 8px;
     line-height: 1.4;
   }
@@ -227,8 +258,8 @@ onMounted(async () => {
     margin-top: 8px;
     .tag {
       font-size: 10px;
-      color: #2f5fd0;
-      background: #eef3ff;
+      color: #c8102e;
+      background: #fdeef0;
       padding: 2px 6px;
       border-radius: 4px;
     }
@@ -253,7 +284,7 @@ onMounted(async () => {
 .trace-card {
   margin: 10px 12px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #1f2b52, #2f5fd0);
+  background: linear-gradient(135deg, #7a0c1e, #c8102e);
   color: #fff;
   padding: 14px;
   .trace-head {
@@ -306,7 +337,7 @@ onMounted(async () => {
   .section-title {
     font-size: 15px;
     font-weight: 600;
-    color: #1f2b52;
+    color: #7a0c1e;
     margin-bottom: 10px;
   }
   .desc {
@@ -344,7 +375,7 @@ onMounted(async () => {
     .detail-sub {
       font-size: 13px;
       font-weight: 600;
-      color: #2f5fd0;
+      color: #c8102e;
       margin-bottom: 4px;
     }
   }
@@ -425,7 +456,7 @@ onMounted(async () => {
   align-items: center;
   padding: 0 12px;
   gap: 12px;
-  box-shadow: 0 -2px 10px rgba(31, 43, 82, 0.06);
+  box-shadow: 0 -2px 10px rgba(122, 12, 30, 0.06);
   .bar-left {
     display: flex;
     gap: 16px;
@@ -455,9 +486,9 @@ onMounted(async () => {
     margin-bottom: 10px;
     font-size: 13px;
     &.active {
-      border-color: #2f5fd0;
-      background: #f4f8ff;
-      color: #2f5fd0;
+      border-color: #c8102e;
+      background: #fdf3f4;
+      color: #c8102e;
     }
     .sku-price {
       color: #ee0a24;

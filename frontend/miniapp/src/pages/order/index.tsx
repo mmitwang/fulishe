@@ -11,8 +11,12 @@ const statusTextMap: Record<number, string> = {
   1: '已支付',
   2: '已发货',
   3: '已完成',
-  4: '已取消'
+  4: '已取消',
+  5: '售后中',
+  6: '已退款'
 }
+
+const statusText = (s: number) => statusTextMap[s] || '未知'
 
 const tabs = [
   { label: '全部', value: -1 },
@@ -30,7 +34,6 @@ const OrderPage: React.FC = () => {
       const data: Record<string, unknown> = { userId: getUserId() }
       if (status >= 0) data.orderStatus = status
       const res = await request<Order[]>({ url: '/order/list', data })
-      console.log('[Order] 订单加载成功', res.length)
       setOrders(res)
     } catch (err) {
       console.error('[Order] 订单加载失败', err)
@@ -52,10 +55,10 @@ const OrderPage: React.FC = () => {
   }
 
   const refundOrder = async (order: Order) => {
-    const res = await Taro.showModal({ title: '申请退款', content: `确认对订单 ${order.orderNo} 申请退款吗？` })
+    const res = await Taro.showModal({ title: '申请退款', content: `确认对订单 ${order.orderNo} 申请退款吗？提交后需商户审核，审核通过后原路退回。` })
     if (!res.confirm) return
-    await request({ url: '/pay/refund', method: 'POST', data: { payNo: order.payNo, reason: '用户申请退款' } })
-    Taro.showToast({ title: '退款已原路退回', icon: 'success' })
+    await request({ url: '/refund/apply', method: 'POST', data: { orderNo: order.orderNo, reason: '用户申请退款' } })
+    Taro.showToast({ title: '退款申请已提交，等待审核', icon: 'success' })
     fetchData(active)
   }
 
@@ -77,7 +80,7 @@ const OrderPage: React.FC = () => {
         <View key={order.id} className={styles.card}>
           <View className={styles.head}>
             <Text className={styles.orderNo}>{order.orderNo}</Text>
-            <Text className={styles.status}>{statusTextMap[order.orderStatus]}</Text>
+            <Text className={styles.status}>{statusText(order.orderStatus)}</Text>
           </View>
           {order.items.map(item => (
             <View key={item.id} className={styles.item}>
@@ -99,7 +102,7 @@ const OrderPage: React.FC = () => {
                 <Text>去支付</Text>
               </View>
             )}
-            {order.payStatus === 1 && (
+            {order.payStatus === 1 && (order.refundStatus === null || order.refundStatus === undefined || order.refundStatus === 3) && (
               <View className={styles.actionBtn} onClick={() => refundOrder(order)}>
                 <Text>申请退款</Text>
               </View>

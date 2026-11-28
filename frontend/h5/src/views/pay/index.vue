@@ -112,7 +112,7 @@ onMounted(async () => {
   .amount {
     font-size: 40px;
     font-weight: 800;
-    color: #1f2b52;
+    color: #7a0c1e;
     margin: 6px 0;
     span {
       font-size: 20px;
@@ -131,7 +131,7 @@ onMounted(async () => {
   .methods-title {
     font-size: 13px;
     font-weight: 600;
-    color: #1f2b52;
+    color: #7a0c1e;
     padding: 12px 0 4px;
   }
   .method-item {
@@ -146,7 +146,7 @@ onMounted(async () => {
       color: #303133;
     }
     &.active .name {
-      color: #2f5fd0;
+      color: #c8102e;
       font-weight: 600;
     }
   }
@@ -172,7 +172,7 @@ onMounted(async () => {
   .success-title {
     font-size: 18px;
     font-weight: 700;
-    color: #1f2b52;
+    color: #7a0c1e;
     margin-top: 12px;
   }
   .success-amount {
@@ -186,8 +186,8 @@ onMounted(async () => {
     align-items: center;
     gap: 6px;
     font-size: 12px;
-    color: #2f5fd0;
-    background: #eef3ff;
+    color: #c8102e;
+    background: #fdeef0;
     padding: 6px 12px;
     border-radius: 20px;
     margin-top: 14px;

@@ -113,6 +113,7 @@ export interface OrderItem {
   quantity: number
   unitPrice: number
   totalPrice?: number
+  shareId?: string
 }
 
 export interface FullReductionRule {

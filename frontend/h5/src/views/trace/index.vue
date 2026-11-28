@@ -134,7 +134,7 @@ onMounted(() => {
   padding: 22px 18px;
   text-align: center;
   color: #fff;
-  background: linear-gradient(135deg, #1f2b52, #2f5fd0 60%, #38b6ff);
+  background: linear-gradient(135deg, #7a0c1e, #c8102e 60%, #f0556b);
   .hero-icon {
     font-size: 36px;
   }
@@ -155,7 +155,7 @@ onMounted(() => {
   }
   .verify-btn {
     background: #fff;
-    color: #2f5fd0;
+    color: #c8102e;
     font-weight: 600;
     border: none;
   }
@@ -237,7 +237,7 @@ onMounted(() => {
     .name {
       font-size: 14px;
       font-weight: 600;
-      color: #1f2b52;
+      color: #7a0c1e;
     }
     .line {
       font-size: 11px;
@@ -254,7 +254,7 @@ onMounted(() => {
   .card-title {
     font-size: 14px;
     font-weight: 700;
-    color: #1f2b52;
+    color: #7a0c1e;
     margin-bottom: 12px;
   }
   .step {
@@ -268,7 +268,7 @@ onMounted(() => {
         width: 10px;
         height: 10px;
         border-radius: 50%;
-        background: #2f5fd0;
+        background: #c8102e;
         margin-top: 4px;
         &.last {
           background: #07c160;
@@ -332,12 +332,12 @@ onMounted(() => {
 .hint {
   margin-top: 14px;
   padding: 14px;
-  background: #eef3ff;
+  background: #fdeef0;
   border-radius: 12px;
   .hint-title {
     font-size: 12px;
     font-weight: 600;
-    color: #2f5fd0;
+    color: #c8102e;
   }
   .hint-text {
     font-size: 11px;

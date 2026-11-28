@@ -1,7 +1,7 @@
 <template>
   <div class="coupon-page">
     <van-nav-bar title="我的卡券" fixed left-arrow @click-left="router.back()" />
-    <van-tabs v-model:active="tab" sticky offset-top="46" color="#2f5fd0">
+    <van-tabs v-model:active="tab" sticky offset-top="46" color="#c8102e">
       <van-tab title="未使用" :name="0" />
       <van-tab title="已使用" :name="1" />
       <van-tab title="已过期" :name="2" />
@@ -24,7 +24,7 @@
             <van-button v-if="c.status === 0" size="mini" round type="danger" @click="redeem(c)">立即使用</van-button>
             <van-button v-if="c.status === 0" size="mini" round plain @click="transfer(c)">转赠</van-button>
             <van-button size="mini" round plain @click="router.push(`/trace?code=${c.couponCode}`)">链上验真</van-button>
-            <van-tag v-if="c.status !== 0" plain type="info">{{ c.status === 1 ? '已核销' : '已过期' }}</van-tag>
+            <van-tag v-if="c.status !== 0" plain type="default">{{ c.status === 1 ? '已核销' : '已过期' }}</van-tag>
           </div>
         </div>
       </div>
@@ -87,7 +87,7 @@ onMounted(fetchData)
   border-radius: 12px;
   overflow: hidden;
   margin-bottom: 12px;
-  box-shadow: 0 2px 10px rgba(31, 43, 82, 0.05);
+  box-shadow: 0 2px 10px rgba(122, 12, 30, 0.05);
   &.used {
     opacity: 0.6;
   }
@@ -119,7 +119,7 @@ onMounted(fetchData)
     .name {
       font-size: 14px;
       font-weight: 600;
-      color: #1f2b52;
+      color: #7a0c1e;
     }
     .code {
       font-size: 11px;

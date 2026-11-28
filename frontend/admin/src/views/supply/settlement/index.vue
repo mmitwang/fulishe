@@ -1,7 +1,7 @@
 <template>
   <div class="settlement-page">
     <el-alert
-      :title="authStore.isPlatformAdmin ? '确认结算仅更新 Mock 状态，不发生真实资金划转。' : '商户可查看本商户结算单，结算确认由平台管理员办理。'"
+      :title="authStore.isPlatformAdmin ? '确认结算仅更新 Mock 状态，不发生真实资金划转。' : isSupplier ? '供应商仅可核对本人结算单，不能确认结算。' : '商户可查看本商户结算单，结算确认由平台管理员办理。'"
       :type="authStore.isPlatformAdmin ? 'info' : 'warning'"
       :closable="false"
       class="scope-alert"
@@ -71,7 +71,7 @@
               @click="settle(row)"
             >确认结算</el-button>
             <span v-else-if="Number(row.status) === 2" class="done">已完成</span>
-            <span v-else class="readonly">商户只读</span>
+            <span v-else class="readonly">{{ isSupplier ? '供应商只读' : '商户只读' }}</span>
           </template>
         </el-table-column>
       </el-table>
@@ -97,6 +97,7 @@ import request from '@/utils/request'
 import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
+const isSupplier = computed(() => Boolean(authStore.userInfo?.roleCodes?.includes('supplier') && !authStore.isPlatformAdmin))
 const statusMeta: Record<number, { text: string; type: 'primary' | 'success' | 'warning' | 'info' | 'danger' }> = {
   0: { text: '待结算', type: 'warning' },
   1: { text: '结算中', type: 'primary' },

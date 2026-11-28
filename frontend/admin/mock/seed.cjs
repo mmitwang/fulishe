@@ -13,22 +13,26 @@ const roles = [
   { id: 1, roleName: '超级管理员', roleCode: 'super_admin', dataScope: 'ALL', description: '拥有平台全部权限', createTime: timeAgo(380) },
   { id: 2, roleName: '商户管理员', roleCode: 'merchant_admin', dataScope: 'MERCHANT', description: '管理本商户经营数据', createTime: timeAgo(360) },
   { id: 3, roleName: '采购专员', roleCode: 'purchase', dataScope: 'MERCHANT', description: '供应商、采购单与库存', createTime: timeAgo(300) },
-  { id: 4, roleName: '运营专员', roleCode: 'operator', dataScope: 'MERCHANT', description: '商品、卡券与订单运营', createTime: timeAgo(280) },
-  { id: 5, roleName: '普通用户', roleCode: 'user', dataScope: 'MERCHANT', description: '商城下单与卡券使用', createTime: timeAgo(260) }
+  { id: 4, roleName: '运营专员', roleCode: 'operator', dataScope: 'MERCHANT', description: '商品、订单与推广运营', createTime: timeAgo(280) },
+  { id: 5, roleName: '普通用户', roleCode: 'user', dataScope: 'SELF', description: '商城下单与卡券使用', createTime: timeAgo(260) },
+  { id: 6, roleName: '供应商', roleCode: 'supplier', dataScope: 'SUPPLIER', description: '本人采购接单与对账', createTime: timeAgo(250) },
+  { id: 7, roleName: '分销商', roleCode: 'distributor', dataScope: 'DISTRIBUTOR', description: '推广选品、分享与佣金明细', createTime: timeAgo(240) }
 ]
 
 // 角色菜单关系保存在共享状态中，授权调整会即时影响后续权限计算。
 const roleMenus = {
-  1: Array.from({ length: 33 }, (_, i) => i + 1),
-  2: [2, 3, 10, 11, 12, 13, 14, 20, 25, 32, 33],
+  1: Array.from({ length: 46 }, (_, i) => i + 1),
+  2: [2, 3, 10, 11, 12, 13, 14, 20, 21, 22, 23, 24, 25, 32, 33, 34, 35, 37, 44],
   3: [20, 21, 22, 23, 24],
-  4: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
-  5: []
+  4: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 34, 35, 37, 44],
+  5: [],
+  6: [20, 21, 22, 25],
+  7: [38, 39, 40, 41]
 }
 
 const users = [
   { id: 1, tenantId: 1, username: 'admin', password: '123456', nickname: '超级管理员', realName: '系统管理员', mobile: '13800138001', email: 'admin@fulishe.com', deptName: '总部', roleIds: [1], roleName: '超级管理员', userType: 1, status: 1, createTime: timeAgo(380) },
-  { id: 2, tenantId: 1, username: 'zhangsan', password: '123456', nickname: '张三', realName: '张三', mobile: '13800138005', email: 'zhangsan@fulishe.com', deptName: '采购部', roleIds: [3], roleName: '采购专员', userType: 2, status: 1, createTime: timeAgo(200) },
+  { id: 2, tenantId: 2, username: 'zhangsan', password: '123456', nickname: '张三', realName: '张三', mobile: '13800138005', email: 'zhangsan@fulishe.com', deptName: '采购部', roleIds: [3], roleName: '采购专员', userType: 2, status: 1, createTime: timeAgo(200) },
   { id: 3, tenantId: 2, username: 'fulishe_admin', password: '123456', nickname: '福礼社管理员', realName: '王敏', mobile: '13800138002', email: 'admin@fulishe.cn', deptName: '运营中心', roleIds: [2], roleName: '商户管理员', userType: 1, status: 1, createTime: timeAgo(360) },
   { id: 4, tenantId: 2, username: 'user1', password: '123456', nickname: '李女士', realName: '李静', mobile: '13800138007', email: 'lijing@fulishe.cn', deptName: '市场部', roleIds: [5], roleName: '普通用户', userType: 2, status: 1, createTime: timeAgo(150) },
   { id: 5, tenantId: 3, username: 'xinchun_admin', password: '123456', nickname: '新春礼品管理员', realName: '陈建国', mobile: '13800138010', email: 'admin@xinchun.com', deptName: '总经办', roleIds: [2], roleName: '商户管理员', userType: 1, status: 1, createTime: timeAgo(300) },
@@ -36,7 +40,12 @@ const users = [
   { id: 7, tenantId: 4, username: 'meishihui_admin', password: '123456', nickname: '美食汇管理员', realName: '刘强', mobile: '13800138011', email: 'admin@meishihui.com', deptName: '总经办', roleIds: [2], roleName: '商户管理员', userType: 1, status: 1, createTime: timeAgo(240) },
   { id: 8, tenantId: 4, username: 'customer2', password: '123456', nickname: '客户B', realName: '孙晓', mobile: '13800138014', email: 'customer2@meishihui.com', deptName: '工会', roleIds: [5], roleName: '普通用户', userType: 2, status: 1, createTime: timeAgo(90) },
   { id: 9, tenantId: 5, username: 'shuma_admin', password: '123456', nickname: '数码优选管理员', realName: '周涛', mobile: '13800138012', email: 'admin@shumayouxuan.com', deptName: '总经办', roleIds: [2], roleName: '商户管理员', userType: 1, status: 1, createTime: timeAgo(180) },
-  { id: 10, tenantId: 5, username: 'customer3', password: '123456', nickname: '客户C', realName: '吴桐', mobile: '13800138015', email: 'customer3@shumayouxuan.com', deptName: '采购部', roleIds: [5], roleName: '普通用户', userType: 2, status: 1, createTime: timeAgo(60) }
+  { id: 10, tenantId: 5, username: 'customer3', password: '123456', nickname: '客户C', realName: '吴桐', mobile: '13800138015', email: 'customer3@shumayouxuan.com', deptName: '采购部', roleIds: [5], roleName: '普通用户', userType: 2, status: 1, createTime: timeAgo(60) },
+  { id: 11, tenantId: 2, supplierId: 1, username: 'supplier_fuli', password: '123456', nickname: '福礼食品供应商', realName: '林海', mobile: '13900010001', email: 'supplier1@fulishe.cn', deptName: '供应商协同', roleIds: [6], roleName: '供应商', userType: 3, status: 1, createTime: timeAgo(55) },
+  { id: 12, tenantId: 3, supplierId: 2, username: 'supplier_dxc', password: '123456', nickname: '稻香村供应商', realName: '顾晓', mobile: '13900010002', email: 'supplier2@fulishe.cn', deptName: '供应商协同', roleIds: [6], roleName: '供应商', userType: 3, status: 1, createTime: timeAgo(50) },
+  { id: 13, tenantId: 2, distributorId: 1, username: 'distributor_chen', password: '123456', nickname: '推广员小陈', realName: '陈悦', mobile: '13800138021', email: 'distributor1@fulishe.cn', deptName: '推广分销', roleIds: [7], roleName: '分销商', userType: 4, status: 1, createTime: timeAgo(45) },
+  { id: 14, tenantId: 3, distributorId: 2, username: 'distributor_lin', password: '123456', nickname: '推广员小林', realName: '林溪', mobile: '13800138022', email: 'distributor2@fulishe.cn', deptName: '推广分销', roleIds: [7], roleName: '分销商', userType: 4, status: 1, createTime: timeAgo(40) },
+  { id: 15, tenantId: 2, username: 'fulishe_operator', password: '123456', nickname: '福礼社运营', realName: '周青', mobile: '13800138023', email: 'operator@fulishe.cn', deptName: '运营中心', roleIds: [4], roleName: '运营专员', userType: 2, status: 1, createTime: timeAgo(35) }
 ]
 
 /* ---------------- 分类 / 品牌 ---------------- */

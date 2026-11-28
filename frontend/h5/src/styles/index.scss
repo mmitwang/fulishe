@@ -1,3 +1,13 @@
+// 中国红主题：覆盖 Vant 默认蓝
+:root {
+  --van-primary-color: #c8102e;
+  --van-blue: #c8102e;
+  --van-button-primary-background: #c8102e;
+  --van-button-primary-border-color: #c8102e;
+  --van-tabs-bottom-bar-color: #c8102e;
+  --van-tab-active-text-color: #c8102e;
+}
+
 * {
   margin: 0;
   padding: 0;

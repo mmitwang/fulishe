@@ -53,9 +53,12 @@ const HomePage: React.FC = () => {
     <View className={styles.page}>
       <View className={styles.hero}>
         <View className={styles.brandRow}>
-          <View className={styles.brand}>
-            <Text className={styles.brandName}>福礼社</Text>
-            <Text className={styles.brandSlogan}>企业福利 · 区块链溯源</Text>
+          <View className={styles.brandLeft}>
+            <View className={styles.brandMark}>福</View>
+            <View className={styles.brand}>
+              <Text className={styles.brandName}>福礼社</Text>
+              <Text className={styles.brandSlogan}>企业福利 · 区块链溯源</Text>
+            </View>
           </View>
           <View className={styles.traceBtn} onClick={goTrace}>
             <Text>扫码验真</Text>

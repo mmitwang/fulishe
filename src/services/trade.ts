@@ -5,6 +5,7 @@ import { ensureSession } from './auth'
 import { isMockMode } from './config'
 import { isFuliCardUnknownOutcome, resolveFuliCardOperation } from './fuli-card'
 import { calculateFullReduction } from './promotion'
+import { shareIdForProduct } from './distribution'
 
 const localOrderKey = 'localMockOrders'
 
@@ -59,7 +60,8 @@ const createLocalOrder = (draft: CheckoutDraft, userId: number): Order => {
       skuName: item.skuName,
       quantity: item.quantity,
       unitPrice: item.price,
-      totalPrice: item.price * item.quantity
+      totalPrice: item.price * item.quantity,
+      shareId: shareIdForProduct(item.spuId)
     }))
   }
 }
@@ -142,7 +144,7 @@ export const createOrder = async (draft: CheckoutDraft): Promise<Order> => {
         storeName: draft.storeName,
         deliverySlot: draft.deliverySlot,
         promotionId: draft.promotionId,
-        items: draft.items.map(item => ({ skuId: item.skuId, quantity: item.quantity, unitPrice: item.price }))
+        items: draft.items.map(item => ({ skuId: item.skuId, quantity: item.quantity, unitPrice: item.price, shareId: shareIdForProduct(item.spuId) }))
       }
     })
     clearRequestCache()

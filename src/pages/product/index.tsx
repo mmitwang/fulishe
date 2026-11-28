@@ -4,6 +4,7 @@ import Taro, { useRouter, useShareAppMessage } from '@tarojs/taro'
 import classnames from 'classnames'
 import { getProductDetail } from '@/services/catalog'
 import { shareGift } from '@/services/wechat'
+import { trackDistributionShare } from '@/services/distribution'
 import { useCartStore } from '@/store/cart'
 import type { CartItem, ProductDetail, Sku } from '@/types'
 import styles from './index.module.scss'
@@ -11,6 +12,7 @@ import styles from './index.module.scss'
 const ProductPage: React.FC = () => {
   const router = useRouter()
   const productId = Number(router.params.id || 1)
+  const shareId = String(router.params.shareId || '')
   const addToCart = useCartStore(state => state.add)
   const [detail, setDetail] = useState<ProductDetail | null>(null)
   const [selectedSku, setSelectedSku] = useState<Sku | null>(null)
@@ -26,18 +28,28 @@ const ProductPage: React.FC = () => {
       setSelectedSku(result.skus.find(sku => sku.stock > 0) || null)
       setShowVideo(false)
       setQuantity(1)
+      if (shareId) {
+        try {
+          const user = Taro.getStorageSync('userInfo')
+          const attribution = await trackDistributionShare(shareId, productId, Number(user?.id || 2))
+          Taro.showToast({ title: attribution.valid ? '已记录本次推广分享' : attribution.reason || '分享已失效', icon: 'none' })
+        } catch (attributionError) {
+          console.error('[Product] 分享归因校验失败', shareId, attributionError)
+          Taro.showToast({ title: '分享校验暂不可用，仍可正常购买', icon: 'none' })
+        }
+      }
       console.log('[Product] 商品详情就绪', result.id, result.skus.length)
     } catch (loadError) {
       console.error('[Product] 商品详情加载失败', productId, loadError)
       setError('商品详情暂时无法加载')
     }
-  }, [productId])
+  }, [productId, shareId])
 
   useEffect(() => { void load() }, [load])
 
   useShareAppMessage(() => ({
     title: detail?.spuName || '福礼社精选好礼',
-    path: `/pages/product/index?id=${productId}`,
+    path: `/pages/product/index?id=${productId}${shareId ? `&shareId=${shareId}` : ''}`, 
     imageUrl: detail?.image
   }))
 

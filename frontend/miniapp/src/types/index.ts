@@ -116,6 +116,11 @@ export interface Order {
   source: string
   createTime: string
   payNo: string
+  refundStatus?: number | null
+  refundNo?: string
+  refundReason?: string
+  invoiceStatus?: number | null
+  invoiceNo?: string
   items: OrderItem[]
 }
 

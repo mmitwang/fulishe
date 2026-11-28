@@ -17,7 +17,7 @@
               <el-option :value="0" label="待处理" />
               <el-option :value="1" label="处理中" />
               <el-option :value="2" label="退款成功" />
-              <el-option :value="3" label="退款失败" />
+              <el-option :value="3" label="已驳回" />
             </el-select>
           </el-form-item>
           <el-form-item>
@@ -27,9 +27,14 @@
         </el-form>
       </div>
 
+      <div class="toolbar">
+        <el-button type="primary" plain @click="openFundFlow">资金流水台账</el-button>
+        <span class="toolbar-tip">支付入账 / 退款出账 / 佣金计提 / 佣金冲正 / 佣金结算</span>
+      </div>
+
       <el-alert
-        title="售后审核仅保存 Mock 审核结果，不会变更退款状态或执行真实退款。"
-        type="info"
+        title="审核通过将执行退款：更新支付/订单状态、回补库存、冲正佣金，并写入资金流水（Mock 演示，无真实资金划转）。"
+        type="warning"
         :closable="false"
         class="mock-alert"
       />
@@ -120,8 +125,37 @@
       </el-descriptions>
     </el-dialog>
 
-    <el-dialog v-model="showAudit" title="售后审核（Mock）" width="480px">
-      <el-alert title="这里只保存审核记录，不会执行实际退款。" type="warning" :closable="false" class="audit-alert" />
+    <el-dialog v-model="showFund" title="资金流水台账" width="900px">
+      <div class="fund-summary">
+        <div class="fund-cell"><span>支付入账</span><b class="in">+¥{{ formatMoney(fundSummary.income) }}</b></div>
+        <div class="fund-cell"><span>退款出账</span><b class="out">-¥{{ formatMoney(fundSummary.refund) }}</b></div>
+        <div class="fund-cell"><span>净流入</span><b>¥{{ formatMoney(fundSummary.net) }}</b></div>
+        <div class="fund-cell"><span>佣金计提</span><b>¥{{ formatMoney(fundSummary.commissionAccrual) }}</b></div>
+        <div class="fund-cell"><span>佣金冲正</span><b class="out">¥{{ formatMoney(fundSummary.commissionReverse) }}</b></div>
+        <div class="fund-cell"><span>佣金结算</span><b>¥{{ formatMoney(fundSummary.commissionSettle) }}</b></div>
+      </div>
+      <el-table v-loading="fundLoading" :data="fundRows" border stripe size="small" max-height="420">
+        <el-table-column prop="flowNo" label="流水号" min-width="170" />
+        <el-table-column prop="bizTypeLabel" label="类型" width="110" align="center" />
+        <el-table-column label="方向" width="80" align="center">
+          <template #default="{ row }">
+            <el-tag :type="row.direction === 'IN' ? 'success' : 'danger'" effect="plain">{{ row.direction === 'IN' ? '收入' : '支出' }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="金额" width="120" align="right">
+          <template #default="{ row }">
+            <span :class="row.direction === 'IN' ? 'in' : 'out'">{{ row.direction === 'IN' ? '+' : '-' }}¥{{ formatMoney(row.amount) }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="orderNo" label="关联订单" min-width="170" />
+        <el-table-column prop="refNo" label="关联单据" min-width="170" />
+        <el-table-column prop="remark" label="说明" min-width="200" />
+        <el-table-column prop="createTime" label="时间" min-width="165" />
+      </el-table>
+    </el-dialog>
+
+    <el-dialog v-model="showAudit" title="售后审核" width="480px">
+      <el-alert title="审核通过将原路退款、回补库存、冲正推广佣金并记录资金流水；审核拒绝则恢复订单为已支付。" type="warning" :closable="false" class="audit-alert" />
       <el-form :model="auditForm" label-width="90px">
         <el-form-item label="退款单号">
           <el-input :model-value="currentRefund?.refundNo" disabled />
@@ -189,10 +223,37 @@ const showAudit = ref(false)
 const currentRefund = ref<RefundRecord | null>(null)
 const auditForm = reactive({ auditResult: 1, auditOpinion: '' })
 
+const showFund = ref(false)
+const fundLoading = ref(false)
+const fundRows = ref<Array<Record<string, any>>>([])
+const fundSummary = ref({
+  income: 0,
+  refund: 0,
+  net: 0,
+  commissionAccrual: 0,
+  commissionReverse: 0,
+  commissionSettle: 0
+})
+
+const openFundFlow = async () => {
+  showFund.value = true
+  fundLoading.value = true
+  try {
+    const [summary, page] = await Promise.all([
+      request.get('/admin/fund/flow/summary'),
+      request.get('/admin/fund/flow/page', { params: { current: 1, size: 50 } })
+    ])
+    fundSummary.value = { ...fundSummary.value, ...(summary || {}) }
+    fundRows.value = page?.records || []
+  } finally {
+    fundLoading.value = false
+  }
+}
+
 type TagType = 'primary' | 'success' | 'warning' | 'danger' | 'info'
 
 const formatMoney = (value: unknown) => Number(value || 0).toFixed(2)
-const refundStatusTexts: Record<number, string> = { 0: '待处理', 1: '处理中', 2: '退款成功', 3: '退款失败' }
+const refundStatusTexts: Record<number, string> = { 0: '待审核', 1: '处理中', 2: '退款成功', 3: '已驳回' }
 const refundStatusTypes: Record<number, TagType> = { 0: 'info', 1: 'warning', 2: 'success', 3: 'danger' }
 const refundStatusText = (status: number) => refundStatusTexts[Number(status)] || '未知'
 const refundStatusType = (status: number): TagType => refundStatusTypes[Number(status)] || 'info'
@@ -269,11 +330,11 @@ const handleConfirmAudit = async () => {
   }
 
   const message = auditForm.auditResult === 1
-    ? '确认保存“审核通过”结果？此操作不会执行实际退款。'
-    : '确认保存“审核拒绝”结果？此操作不会执行实际退款。'
+    ? '确认审核通过并执行退款？将原路退款、回补库存并冲正佣金。'
+    : '确认审核拒绝？订单将恢复为已支付，不产生资金流出。'
   try {
-    await ElMessageBox.confirm(message, '确认 Mock 审核', {
-      confirmButtonText: '确认保存',
+    await ElMessageBox.confirm(message, '确认售后审核', {
+      confirmButtonText: '确认',
       cancelButtonText: '取消',
       type: 'warning'
     })
@@ -287,7 +348,7 @@ const handleConfirmAudit = async () => {
       auditResult: auditForm.auditResult,
       auditOpinion: auditForm.auditOpinion.trim()
     })
-    ElMessage.success('Mock 售后审核结果已保存，未执行实际退款')
+    ElMessage.success(auditForm.auditResult === 1 ? '退款已完成：库存已回补、佣金已冲正' : '已驳回退款申请')
     showAudit.value = false
     await loadData()
   } finally {
@@ -316,6 +377,52 @@ onMounted(loadData)
 
   .multi-tag {
     margin-left: 6px;
+  }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+
+    .toolbar-tip {
+      color: #8b96ad;
+      font-size: 12px;
+    }
+  }
+
+  .fund-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+
+    .fund-cell {
+      background: #f7f9fe;
+      border: 1px solid #e4e9f2;
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 12px;
+      color: #6b7794;
+
+      b {
+        font-size: 15px;
+        color: #131a2b;
+      }
+    }
+  }
+
+  .in {
+    color: #0f9d58;
+    font-weight: 600;
+  }
+
+  .out {
+    color: #d13b3b;
+    font-weight: 600;
   }
 
   .pagination-bar {

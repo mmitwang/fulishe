@@ -46,7 +46,7 @@
       <template #header>
         <div class="card-header">
           <span>最新订单</span>
-          <el-link type="primary" :underline="false" @click="router.push('/order/list')">查看全部</el-link>
+          <el-link type="primary" underline="never" @click="router.push('/order/list')">查看全部</el-link>
         </div>
       </template>
       <el-table :data="overview.latestOrders" stripe :empty-text="loadFailed ? '数据加载失败' : '暂无订单'">
@@ -94,7 +94,9 @@ const orderStatusMeta: Record<number, { text: string; type: 'primary' | 'success
   1: { text: '待发货', type: 'primary' },
   2: { text: '已发货', type: 'info' },
   3: { text: '已完成', type: 'success' },
-  4: { text: '已取消', type: 'danger' }
+  4: { text: '已取消', type: 'danger' },
+  5: { text: '售后中', type: 'warning' },
+  6: { text: '已退款', type: 'info' }
 }
 
 const formatMoney = (value: unknown) => Number(value || 0).toLocaleString('zh-CN', {
@@ -162,8 +164,8 @@ onMounted(fetchOverview)
     padding: 24px 28px;
     border-radius: 16px;
     color: #fff;
-    background: linear-gradient(120deg, #1f2b52, #2f5fd0 62%, #467ee7);
-    box-shadow: 0 14px 34px rgba(31, 43, 82, 0.18);
+    background: linear-gradient(120deg, #7a0c1e, #c8102e 62%, #467ee7);
+    box-shadow: 0 14px 34px rgba(122, 12, 30, 0.18);
 
     .eyebrow {
       margin-bottom: 8px;
@@ -227,7 +229,7 @@ onMounted(fetchOverview)
       word-break: break-all;
 
       &.sales {
-        color: #2f5fd0;
+        color: #c8102e;
         font-size: 22px;
       }
 

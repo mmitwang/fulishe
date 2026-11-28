@@ -1,0 +1,293 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
+<title>福礼社 页面交互测试报告</title>
+<style>
+body{font-family:-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;margin:24px;color:#1f2937}
+h1{font-size:22px}h2{font-size:18px;margin-top:28px;border-left:4px solid #2563eb;padding-left:10px}
+.summary{display:flex;gap:12px;margin:16px 0}
+.summary div{padding:10px 18px;border-radius:8px;color:#fff;font-weight:600}
+.pass{background:#10b981}.warn{background:#f59e0b}.fail{background:#ef4444}.denied{background:#6366f1}.total{background:#374151}
+table{border-collapse:collapse;width:100%;font-size:13px;margin-top:10px}
+th,td{border:1px solid #e5e7eb;padding:7px 9px;text-align:left;vertical-align:top}
+th{background:#f9fafb}code{background:#f3f4f6;padding:1px 5px;border-radius:3px;font-size:11px}
+.badge{padding:2px 9px;border-radius:10px;color:#fff;font-size:11px}
+tr.pass td:nth-child(3){background:#ecfdf5}tr.warn{background:#fffbeb}tr.fail{background:#fef2f2}tr.denied{background:#eef2ff}
+.meta{color:#6b7280;font-size:13px}
+</style></head><body>
+<h1>福礼社平台 · 页面自动交互测试报告</h1>
+<p class="meta">生成时间：2026-11-28 13:34:26 ｜ 管理端 3100 + PC 商城 3101 ｜ 仅只读安全交互</p>
+<div class="summary">
+<div class="pass">通过 63</div><div class="warn">告警 0</div><div class="fail">失败 0</div><div class="denied">角色隔离 4</div><div class="total">合计 67</div>
+</div>
+<p class="meta">未覆盖：微信原生小程序真机（开发者工具 CLI 不可用，已用 Taro H5 产物验证）。截图见 screenshots/ 目录，点击"截图"查看。</p>
+<h2>明细</h2>
+<table><thead><tr><th>前端</th><th>页面</th><th>状态</th><th>耗时</th><th>交互动作</th><th>备注</th><th>证据</th></tr></thead>
+<tbody><tr class="pass">
+    <td>admin</td><td>数据看板<br><code>/dashboard</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>3102ms</td><td></td><td></td>
+    <td><a href="./screenshots/admin-_dashboard.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>admin</td><td>商户工作台<br><code>/merchant/dashboard</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>3572ms</td><td>点击[查询]</td><td></td>
+    <td><a href="./screenshots/admin-_merchant_dashboard.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>admin</td><td>商品列表<br><code>/product/spu</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>5128ms</td><td>点击[查询]、翻页[2]</td><td></td>
+    <td><a href="./screenshots/admin-_product_spu.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>admin</td><td>商品分类<br><code>/product/category</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>3025ms</td><td></td><td></td>
+    <td><a href="./screenshots/admin-_product_category.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>admin</td><td>品牌管理<br><code>/product/brand</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>4954ms</td><td>点击[查询]、翻页[2]</td><td></td>
+    <td><a href="./screenshots/admin-_product_brand.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>admin</td><td>卡券模板<br><code>/coupon/template</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>3632ms</td><td>点击[查询]</td><td></td>
+    <td><a href="./screenshots/admin-_coupon_template.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>admin</td><td>卡券列表<br><code>/coupon/list</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>4748ms</td><td>点击[查询]、翻页[2]</td><td></td>
+    <td><a href="./screenshots/admin-_coupon_list.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>admin</td><td>发放批次<br><code>/coupon/batch</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>3585ms</td><td>点击[查询]</td><td></td>
+    <td><a href="./screenshots/admin-_coupon_batch.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>admin</td><td>订单列表<br><code>/order/list</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>5948ms</td><td>点击[查询]、翻页[2]、打开[详情]</td><td></td>
+    <td><a href="./screenshots/admin-_order_list.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>admin</td><td>支付记录<br><code>/pay/record</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>5876ms</td><td>点击[搜索]、翻页[2]、打开[详情]</td><td></td>
+    <td><a href="./screenshots/admin-_pay_record.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>admin</td><td>退款记录<br><code>/pay/refund</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>4699ms</td><td>点击[搜索]、打开[详情]</td><td></td>
+    <td><a href="./screenshots/admin-_pay_refund.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>admin</td><td>支付配置<br><code>/pay/config</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>4528ms</td><td>点击[重置]、切换Tab[1]、切换Tab[2]</td><td></td>
+    <td><a href="./screenshots/admin-_pay_config.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>admin</td><td>发票管理<br><code>/pay/invoice</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>3562ms</td><td>点击[搜索]</td><td></td>
+    <td><a href="./screenshots/admin-_pay_invoice.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>admin</td><td>平台抽佣<br><code>/pay/commission</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>3628ms</td><td>点击[搜索]</td><td></td>
+    <td><a href="./screenshots/admin-_pay_commission.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>admin</td><td>链上交易<br><code>/chain/tx</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>4896ms</td><td>点击[查询]、翻页[2]</td><td></td>
+    <td><a href="./screenshots/admin-_chain_tx.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>admin</td><td>区块浏览器<br><code>/chain/block</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>5786ms</td><td>点击[查询]、翻页[2]、打开[详情]</td><td></td>
+    <td><a href="./screenshots/admin-_chain_block.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>admin</td><td>溯源验真<br><code>/chain/trace</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>5250ms</td><td>翻页[2]、打开[详情]</td><td></td>
+    <td><a href="./screenshots/admin-_chain_trace.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>admin</td><td>供应商管理<br><code>/supply/supplier</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>3628ms</td><td>点击[查询]</td><td></td>
+    <td><a href="./screenshots/admin-_supply_supplier.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>admin</td><td>采购订单<br><code>/supply/purchase</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>5048ms</td><td>点击[查询]、翻页[2]</td><td></td>
+    <td><a href="./screenshots/admin-_supply_purchase.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>admin</td><td>库存管理<br><code>/supply/inventory</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>4812ms</td><td>点击[查询]、翻页[2]</td><td></td>
+    <td><a href="./screenshots/admin-_supply_inventory.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>admin</td><td>物流发货<br><code>/supply/shipment</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>4864ms</td><td>点击[查询]、翻页[2]</td><td></td>
+    <td><a href="./screenshots/admin-_supply_shipment.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>admin</td><td>对账结算<br><code>/supply/settlement</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>3616ms</td><td>点击[查询]</td><td></td>
+    <td><a href="./screenshots/admin-_supply_settlement.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>admin</td><td>满减促销<br><code>/promotion/full-reduction</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>3713ms</td><td>点击[查询]</td><td></td>
+    <td><a href="./screenshots/admin-_promotion_full-reduction.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>admin</td><td>佣金规则<br><code>/distribution/rules</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>3600ms</td><td>点击[查询]</td><td></td>
+    <td><a href="./screenshots/admin-_distribution_rules.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>admin</td><td>分销商管理<br><code>/distribution/distributors</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>2967ms</td><td></td><td></td>
+    <td><a href="./screenshots/admin-_distribution_distributors.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>admin</td><td>推广订单<br><code>/distribution/orders</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>3657ms</td><td>点击[查询]</td><td></td>
+    <td><a href="./screenshots/admin-_distribution_orders.png" target="_blank">截图</a></td></tr><tr class="denied">
+    <td>admin</td><td>选品中心<br><code>/distributor/selection</code></td>
+    <td><span class="badge denied">DENIED</span></td>
+    <td>2011ms</td><td></td><td>角色隔离：仅对应角色可访问（预期，非缺陷）</td>
+    <td><a href="./screenshots/admin-_distributor_selection.png" target="_blank">截图</a></td></tr><tr class="denied">
+    <td>admin</td><td>我的分享<br><code>/distributor/shares</code></td>
+    <td><span class="badge denied">DENIED</span></td>
+    <td>2019ms</td><td></td><td>角色隔离：仅对应角色可访问（预期，非缺陷）</td>
+    <td><a href="./screenshots/admin-_distributor_shares.png" target="_blank">截图</a></td></tr><tr class="denied">
+    <td>admin</td><td>推广与佣金<br><code>/distributor/orders</code></td>
+    <td><span class="badge denied">DENIED</span></td>
+    <td>1988ms</td><td></td><td>角色隔离：仅对应角色可访问（预期，非缺陷）</td>
+    <td><a href="./screenshots/admin-_distributor_orders.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>admin</td><td>用户管理<br><code>/system/user</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>4774ms</td><td>点击[查询]、翻页[2]</td><td></td>
+    <td><a href="./screenshots/admin-_system_user.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>admin</td><td>角色管理<br><code>/system/role</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>3629ms</td><td>点击[查询]</td><td></td>
+    <td><a href="./screenshots/admin-_system_role.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>admin</td><td>部门管理<br><code>/system/dept</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>2874ms</td><td></td><td></td>
+    <td><a href="./screenshots/admin-_system_dept.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>admin</td><td>菜单管理<br><code>/system/menu</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>3016ms</td><td></td><td></td>
+    <td><a href="./screenshots/admin-_system_menu.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>admin</td><td>租户管理<br><code>/system/tenant</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>3613ms</td><td>点击[查询]</td><td></td>
+    <td><a href="./screenshots/admin-_system_tenant.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>admin</td><td>数据备份<br><code>/system/backup</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>4064ms</td><td>点击[刷新]</td><td></td>
+    <td><a href="./screenshots/admin-_system_backup.png" target="_blank">截图</a></td></tr><tr class="denied">
+    <td>admin</td><td>商户资料<br><code>/merchant/profile</code></td>
+    <td><span class="badge denied">DENIED</span></td>
+    <td>2013ms</td><td></td><td>角色隔离：仅对应角色可访问（预期，非缺陷）</td>
+    <td><a href="./screenshots/admin-_merchant_profile.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>role</td><td>选品中心(分销商)<br><code>/distributor/selection</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>3001ms</td><td></td><td></td>
+    <td><a href="./screenshots/role-_distributor_selection.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>role</td><td>我的分享(分销商)<br><code>/distributor/shares</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>2906ms</td><td></td><td></td>
+    <td><a href="./screenshots/role-_distributor_shares.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>role</td><td>推广与佣金(分销商)<br><code>/distributor/orders</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>2936ms</td><td></td><td></td>
+    <td><a href="./screenshots/role-_distributor_orders.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>role</td><td>商户资料(商户管理员)<br><code>/merchant/profile</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>3008ms</td><td></td><td></td>
+    <td><a href="./screenshots/role-_merchant_profile.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>pc</td><td>首页<br><code>/home</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>3606ms</td><td>点击商品卡</td><td></td>
+    <td><a href="./screenshots/pc-_home.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>pc</td><td>商品分类<br><code>/category</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>3691ms</td><td>点击分类</td><td></td>
+    <td><a href="./screenshots/pc-_category.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>pc</td><td>商品详情<br><code>/product/1</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>7377ms</td><td>加入购物车</td><td></td>
+    <td><a href="./screenshots/pc-_product_1.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>pc</td><td>购物车<br><code>/cart</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>2940ms</td><td></td><td></td>
+    <td><a href="./screenshots/pc-_cart.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>pc</td><td>我的订单<br><code>/order/list</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>4127ms</td><td>订单Tab[已完成]、订单Tab[全部]</td><td></td>
+    <td><a href="./screenshots/pc-_order_list.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>pc</td><td>确认订单<br><code>/order/confirm</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>2961ms</td><td></td><td></td>
+    <td><a href="./screenshots/pc-_order_confirm.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>pc</td><td>收银台<br><code>/pay</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>2912ms</td><td></td><td></td>
+    <td><a href="./screenshots/pc-_pay.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>pc</td><td>我的卡券<br><code>/coupon</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>2892ms</td><td></td><td></td>
+    <td><a href="./screenshots/pc-_coupon.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>pc</td><td>区块链溯源<br><code>/trace</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>2890ms</td><td></td><td></td>
+    <td><a href="./screenshots/pc-_trace.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>pc</td><td>个人中心<br><code>/user</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>3402ms</td><td>点击用户菜单</td><td></td>
+    <td><a href="./screenshots/pc-_user.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>h5</td><td>首页<br><code>/home</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>3946ms</td><td>点击商品卡</td><td></td>
+    <td><a href="./screenshots/h5-_home.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>h5</td><td>商品分类<br><code>/category</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>3875ms</td><td>切换分类</td><td></td>
+    <td><a href="./screenshots/h5-_category.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>h5</td><td>商品详情<br><code>/product/1</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>3819ms</td><td>加入购物车</td><td></td>
+    <td><a href="./screenshots/h5-_product_1.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>h5</td><td>购物车<br><code>/cart</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>2799ms</td><td></td><td></td>
+    <td><a href="./screenshots/h5-_cart.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>h5</td><td>我的订单<br><code>/order/list</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>3680ms</td><td>订单Tab[全部]、订单Tab[已完成]</td><td></td>
+    <td><a href="./screenshots/h5-_order_list.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>h5</td><td>我的卡券<br><code>/coupon</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>2808ms</td><td></td><td></td>
+    <td><a href="./screenshots/h5-_coupon.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>h5</td><td>区块链溯源<br><code>/trace</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>2786ms</td><td></td><td></td>
+    <td><a href="./screenshots/h5-_trace.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>h5</td><td>我的<br><code>/user</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>3583ms</td><td>点击[我的卡券]</td><td></td>
+    <td><a href="./screenshots/h5-_user.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>h5</td><td>完整下单支付流程<br><code>flow:下单支付</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>14562ms</td><td>首页→商品详情、加入购物车、购物车→确认订单、提交订单→收银台、确认支付成功</td><td></td>
+    <td><a href="./screenshots/h5-flow_下单支付.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>mini</td><td>首页<br><code>/#/pages/home/index</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>2262ms</td><td></td><td></td>
+    <td><a href="./screenshots/mini-_#_pages_home_index.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>mini</td><td>分类<br><code>/#/pages/category/index</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>2231ms</td><td></td><td></td>
+    <td><a href="./screenshots/mini-_#_pages_category_index.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>mini</td><td>购物车<br><code>/#/pages/cart/index</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>2223ms</td><td></td><td></td>
+    <td><a href="./screenshots/mini-_#_pages_cart_index.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>mini</td><td>我的<br><code>/#/pages/mine/index</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>3086ms</td><td>点击[全部订单]</td><td></td>
+    <td><a href="./screenshots/mini-_#_pages_mine_index.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>mini</td><td>商品详情<br><code>/#/pages/product/index?id=1</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>3492ms</td><td>加入购物车</td><td></td>
+    <td><a href="./screenshots/mini-_#_pages_product_index_id=1.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>mini</td><td>我的订单<br><code>/#/pages/order/index</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>2226ms</td><td></td><td></td>
+    <td><a href="./screenshots/mini-_#_pages_order_index.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>mini</td><td>区块链溯源<br><code>/#/pages/trace/index</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>2237ms</td><td></td><td></td>
+    <td><a href="./screenshots/mini-_#_pages_trace_index.png" target="_blank">截图</a></td></tr><tr class="pass">
+    <td>perm</td><td>用户管理(分销商应被拒)<br><code>/system/user</code></td>
+    <td><span class="badge pass">PASS</span></td>
+    <td>2837ms</td><td></td><td>权限拦截生效（预期）</td>
+    <td><a href="./screenshots/perm-_system_user.png" target="_blank">截图</a></td></tr></tbody></table>
+</body></html>

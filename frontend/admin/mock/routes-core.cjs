@@ -1,8 +1,9 @@
 const { ok, fail, paginate, like, numEq, timeAgo, fmt } = require('./helpers.cjs')
 const { tenants, users, roles, roleMenus, categories, brands, products, skus } = require('./seed.cjs')
-const { couponTemplates, couponBatches, coupons, orders, orderItems, payRecords, refunds, chains: _c, chainTxs, chainBlocks, chainMeta, suppliers, inventory, shipments, settlements, purchaseOrders, traceRecords, menuList } = require('./seed-extra.cjs')
+const { couponTemplates, couponBatches, coupons, orders, orderItems, payRecords, refunds, invoices, chains: _c, chainTxs, chainBlocks, chainMeta, suppliers, inventory, shipments, settlements, purchaseOrders, traceRecords, menuList } = require('./seed-extra.cjs')
 const { ordersById, ordersByNo, orderItemsByOrderId, orderItemsByOrderNo } = require('./indexes.cjs')
 const { createAuthz } = require('./authz.cjs')
+const stockService = require('./stock-service.cjs')
 
 const nextId = arr => arr.reduce((m, x) => Math.max(m, x.id || 0), 0) + 1
 
@@ -449,7 +450,29 @@ module.exports = function registerCoreRoutes(app, jwt, SECRET_KEY) {
     let list = [...orders].sort((a, b) => b.createTime.localeCompare(a.createTime))
     if (req.query.userId) list = list.filter(o => numEq(o.userId, req.query.userId))
     if (!numEq(null, req.query.orderStatus)) list = list.filter(o => numEq(o.orderStatus, req.query.orderStatus))
-    ok(res, list.map(o => ({ ...o, items: orderItemsByOrderId.get(o.id) || orderItems.filter(i => i.orderId === o.id) })))
+    // 预索引退款/发票，避免按订单逐条扫描导致的 O(n²)
+    const refundsByOrderNo = new Map()
+    refunds.forEach(item => { if (!refundsByOrderNo.has(item.orderNo)) refundsByOrderNo.set(item.orderNo, item) })
+    const invoicesByOrderNo = new Map()
+    invoices.forEach(item => {
+      if ([0, 1].includes(Number(item.status)) && !invoicesByOrderNo.has(item.orderNo)) {
+        invoicesByOrderNo.set(item.orderNo, item)
+      }
+    })
+    ok(res, list.map(o => {
+      const refund = refundsByOrderNo.get(o.orderNo)
+      // 有效发票（待开票/已开票）优先；已红冲则允许再次申请
+      const invoice = invoicesByOrderNo.get(o.orderNo)
+      return {
+        ...o,
+        refundStatus: refund ? Number(refund.refundStatus) : null,
+        refundNo: refund ? refund.refundNo : '',
+        refundReason: refund ? refund.refundReason : '',
+        invoiceStatus: invoice ? Number(invoice.status) : null,
+        invoiceNo: invoice ? invoice.invoiceNo : '',
+        items: orderItemsByOrderId.get(o.id) || orderItems.filter(i => i.orderId === o.id)
+      }
+    }))
   })
 
   app.get('/api/order/detail/:orderNo', (req, res) => {
@@ -461,13 +484,12 @@ module.exports = function registerCoreRoutes(app, jwt, SECRET_KEY) {
   app.put('/api/order/:id/cancel', (req, res) => {
     const order = orders.find(o => o.id === Number(req.params.id))
     if (!order) return fail(res, '订单不存在', 404)
+    if (Number(order.payStatus) === 1) return fail(res, '已支付订单请走售后退款流程', 400)
     order.orderStatus = 4
     order.payStatus = 0
-    orderItems.filter(i => i.orderId === order.id).forEach(i => {
-      const sku = skus.find(s => s.id === i.skuId)
-      if (sku) sku.stock += i.quantity
-    })
-    ok(res, null, '订单已取消')
+    // 未支付订单只释放预占，库存从未真正扣减
+    stockService.release(order.orderNo, '订单取消释放预占')
+    ok(res, null, '订单已取消，预占库存已释放')
   })
 
   /* ---------------- 支付 ---------------- */

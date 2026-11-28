@@ -6,6 +6,10 @@ node_modules/
 # 构建产物
 dist/
 **/dist/
+dist-h5/
+**/dist-h5/
+.swc/
+**/.swc/
 .vite/
 **/.vite/
 target/
@@ -13,11 +17,17 @@ target/
 playwright-report/
 test-results/
 
+# 分享包与本地临时
+.trae-html-share-packages/
+
 # 日志与系统临时文件
 *.log
 *.baiduyun.uploading.cfg
 .DS_Store
 Thumbs.db
+
+# Mock 运行时数据与备份快照（按需保留在本地）
+frontend/admin/data/
 
 # 本地环境与密钥（如后续新增，勿提交）
 .env

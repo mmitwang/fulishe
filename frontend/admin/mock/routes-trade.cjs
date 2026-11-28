@@ -3,26 +3,13 @@ const { products, skus, users } = require('./seed.cjs')
 const { carts, banners, quickEntries, notices, orders, orderItems, payRecords, refunds, coupons, couponTemplates, traceRecords, chainTxs, chainBlocks, chainMeta } = require('./seed-extra.cjs')
 const { productsById, skusBySpuId, productsByCategory, tracesBySpuId, tracesByCode, couponsByCode, couponsByTraceCode, couponTemplatesById } = require('./indexes.cjs')
 const { service: fuliCardService } = require('./fuli-card-service.cjs')
+const distributionService = require('./distribution-service.cjs')
+const financeService = require('./finance-service.cjs')
+const promotionService = require('./promotion-service.cjs')
+const stockService = require('./stock-service.cjs')
+const fundService = require('./fund-service.cjs')
 
-const FULL_REDUCTION_RULES = [
-  { id: 1, thresholdAmount: 99, discountAmount: 10 },
-  { id: 2, thresholdAmount: 199, discountAmount: 25 },
-  { id: 3, thresholdAmount: 299, discountAmount: 40 }
-]
 const roundMoney = value => Number(Number(value).toFixed(2))
-const resolveFullReduction = totalAmount => {
-  const rule = [...FULL_REDUCTION_RULES]
-    .sort((a, b) => a.thresholdAmount - b.thresholdAmount)
-    .filter(item => totalAmount >= item.thresholdAmount)
-    .pop() || null
-  return rule ? {
-    type: 'FULL_REDUCTION',
-    ruleId: rule.id,
-    name: `满 ${rule.thresholdAmount} 减 ${rule.discountAmount}`,
-    thresholdAmount: rule.thresholdAmount,
-    discountAmount: rule.discountAmount
-  } : null
-}
 
 const nextId = arr => arr.reduce((m, x) => Math.max(m, x.id || 0), 0) + 1
 let flowSeq = 1000
@@ -77,6 +64,7 @@ module.exports = function registerTradeRoutes(app, jwt, SECRET_KEY) {
     const { username, password } = req.body
     const user = users.find(u => u.username === username && u.password === password)
     if (!user) return fail(res, '用户名或密码错误')
+    if (Number(user.status) !== 1) return fail(res, '账号已禁用，请联系管理员', 403)
     const token = jwt.sign({ id: user.id, tenantId: user.tenantId, username: user.username }, SECRET_KEY, { expiresIn: '24h' })
     ok(res, {
       token,
@@ -86,6 +74,14 @@ module.exports = function registerTradeRoutes(app, jwt, SECRET_KEY) {
 
   /* ---------------- 首页 / 商品 ---------------- */
   app.get('/api/h5/home', (req, res) => {
+    const visibleProducts = products.filter(p => p.status === 1)
+    // 新建商品会 unshift 到数组头部且 sales=0，这里按 id 倒序单独作为「新品上架」，确保上架即可被消费者发现
+    const newProducts = [...visibleProducts].sort((a, b) => Number(b.id) - Number(a.id)).slice(0, 8).map(p => ({ ...p, isNew: true }))
+    const hotProducts = [...visibleProducts].sort((a, b) => b.sales - a.sales).slice(0, 10)
+    const recommend = [...newProducts]
+    newProducts.concat(hotProducts).forEach(p => {
+      if (recommend.length < 12 && !recommend.some(item => item.id === p.id)) recommend.push(p)
+    })
     ok(res, {
       banners,
       quickEntries,
@@ -94,9 +90,10 @@ module.exports = function registerTradeRoutes(app, jwt, SECRET_KEY) {
         { id: 1, name: '礼品卡券' }, { id: 2, name: '节庆礼盒' }, { id: 3, name: '食品礼盒' }, { id: 4, name: '茶酒饮品' },
         { id: 5, name: '数码家电' }, { id: 6, name: '家居生活' }, { id: 7, name: '健康关怀' }, { id: 8, name: '办公用品' }
       ],
-      hotProducts: [...products].filter(p => p.status === 1).sort((a, b) => b.sales - a.sales).slice(0, 10),
+      hotProducts,
+      newProducts,
       coupons: couponTemplates.filter(t => t.status === 1).slice(0, 4),
-      recommend: products.filter(p => p.status === 1).slice(4, 12)
+      recommend: recommend.slice(0, 12)
     })
   })
 
@@ -182,7 +179,7 @@ module.exports = function registerTradeRoutes(app, jwt, SECRET_KEY) {
 
   /* ---------------- 满减 / 下单 / 支付 / 退款 ---------------- */
   app.get('/api/h5/promotions/full-reduction', (req, res) => {
-    ok(res, { name: '全场满减', rules: FULL_REDUCTION_RULES })
+    ok(res, promotionService.publicPromotion())
   })
 
   const createOrderHandler = (req, res) => {
@@ -201,7 +198,7 @@ module.exports = function registerTradeRoutes(app, jwt, SECRET_KEY) {
     }
     totalAmount = roundMoney(totalAmount)
     // 满减以服务端 SKU 实价为准，客户端只传预期档位用于识别规则变更。
-    const promotion = resolveFullReduction(totalAmount)
+    const promotion = promotionService.resolveFullReduction(totalAmount)
     if (promotionId !== undefined && promotionId !== null && promotionId !== '' && Number(promotionId) !== Number(promotion?.ruleId || 0)) {
       return fail(res, '满减优惠已变化，请返回结算页重新确认')
     }
@@ -248,8 +245,9 @@ module.exports = function registerTradeRoutes(app, jwt, SECRET_KEY) {
       itemCount: lines.length
     }
     orders.unshift(order)
+    const createdOrderItems = []
     lines.forEach(l => {
-      orderItems.push({
+      const orderItem = {
         id: nextId(orderItems),
         orderId: order.id,
         orderNo,
@@ -264,10 +262,19 @@ module.exports = function registerTradeRoutes(app, jwt, SECRET_KEY) {
         unitPrice: l.sku.price,
         totalPrice: l.sku.price * l.quantity,
         tenantId: user.tenantId
-      })
-      l.sku.stock -= l.quantity
-      l.spu.stock -= l.quantity
+      }
+      orderItems.push(orderItem)
+      createdOrderItems.push(orderItem)
     })
+    // 下单只预占库存，支付成功才扣减，取消/超时自动释放
+    try {
+      stockService.reserve(orderNo, order.id, lines)
+    } catch (error) {
+      orders.splice(orders.indexOf(order), 1)
+      orderItems.splice(orderItems.length - createdOrderItems.length, createdOrderItems.length)
+      return fail(res, error.message || '库存锁定失败', Number(error.status) || 400)
+    }
+    distributionService.captureOrderAttribution(order, createdOrderItems, items)
     for (let i = carts.length - 1; i >= 0; i--) {
       if (carts[i].userId === user.id && items.some(it => Number(it.skuId) === carts[i].skuId)) carts.splice(i, 1)
     }
@@ -293,12 +300,20 @@ module.exports = function registerTradeRoutes(app, jwt, SECRET_KEY) {
         const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '')
         const auth = jwt.verify(token, SECRET_KEY)
         const result = fuliCardService.payOrder(Number(auth.id), orderNo, req.body.requestId || `ORDER_PAY:${orderNo}`)
+        stockService.commit(orderNo)
+        fundService.record({ bizType: 'PAY_IN', amountCents: fundService.toCents(order.payAmount), orderNo, refNo: result.payNo, merchantId: order.merchantId, remark: '福卡支付入账' })
+        distributionService.onOrderPaid(order)
+        financeService.onOrderPaid(order)
         return ok(res, result, '福卡支付成功')
       } catch (error) {
         return fail(res, error.message || '福卡支付失败', 400)
       }
     }
-    if (order.payStatus === 1) return ok(res, { payNo: order.payNo, payStatus: 2, payAmount: order.payAmount }, '订单已支付')
+    if (order.payStatus === 1) {
+      distributionService.onOrderPaid(order)
+      financeService.onOrderPaid(order)
+      return ok(res, { payNo: order.payNo, payStatus: 2, payAmount: order.payAmount }, '订单已支付')
+    }
     const payNo = `PAY${Date.now()}`
     order.orderStatus = 1
     order.payStatus = 1
@@ -322,6 +337,10 @@ module.exports = function registerTradeRoutes(app, jwt, SECRET_KEY) {
       channel: payMethod === 1 ? '微信支付' : payMethod === 2 ? '支付宝' : '余额支付'
     })
     appendChainTx('ORDER_PAY', '订单支付', orderNo, { spuName: '礼品订单', from: order.userName, to: '福礼社商户', amount: order.payAmount })
+    stockService.commit(orderNo)
+    fundService.record({ bizType: 'PAY_IN', amountCents: fundService.toCents(order.payAmount), orderNo, refNo: payNo, merchantId: order.merchantId, remark: '订单支付入账' })
+    distributionService.onOrderPaid(order)
+    financeService.onOrderPaid(order)
     ok(res, { payNo, payStatus: 2, payAmount: order.payAmount, payTime: order.payTime }, '支付成功')
   })
 
@@ -338,6 +357,11 @@ module.exports = function registerTradeRoutes(app, jwt, SECRET_KEY) {
       record.thirdPayNo = transactionId || record.thirdPayNo
       record.notifyCount = Number(record.notifyCount || 0) + 1
     }
+    const order = orders.find(item => item.orderNo === record.orderNo)
+    if (order && record.payStatus === 2) {
+      distributionService.onOrderPaid(order)
+      financeService.onOrderPaid(order)
+    }
     res.type('application/xml').send('<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>')
   })
 
@@ -351,6 +375,10 @@ module.exports = function registerTradeRoutes(app, jwt, SECRET_KEY) {
         const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '')
         const auth = jwt.verify(token, SECRET_KEY)
         const refund = fuliCardService.refundOrder(Number(auth.id), payNo, req.body.requestId || `ORDER_REFUND:${record.orderNo}`, reason)
+        stockService.restock(record.orderNo, orderItems.filter(item => item.orderNo === record.orderNo), '退款回补库存')
+        fundService.record({ bizType: 'REFUND_OUT', amountCents: fundService.toCents(record.payAmount), orderNo: record.orderNo, refNo: refund.refundNo, merchantId: order?.merchantId, remark: '福卡退款出账' })
+        distributionService.onOrderRefunded(order, reason)
+        financeService.onOrderRefunded(order, record.payAmount)
         return ok(res, refund, '福卡退款已退回账户')
       } catch (error) {
         return fail(res, error.message || '福卡退款失败', 400)
@@ -377,7 +405,48 @@ module.exports = function registerTradeRoutes(app, jwt, SECRET_KEY) {
       createTime: fmt(new Date())
     }
     refunds.unshift(refund)
+    stockService.restock(record.orderNo, orderItems.filter(item => item.orderNo === record.orderNo), '退款回补库存')
+    fundService.record({ bizType: 'REFUND_OUT', amountCents: fundService.toCents(refund.refundAmount), orderNo: record.orderNo, refNo: refund.refundNo, merchantId: order?.merchantId, remark: '退款原路出账' })
+    distributionService.onOrderRefunded(order, reason)
+    financeService.onOrderRefunded(order, refund.refundAmount)
     ok(res, refund, '退款已原路退回')
+  })
+
+  // 用户提交退款申请：只登记待审核，不产生资金流出与库存变动
+  app.post('/api/refund/apply', (req, res) => {
+    const { orderNo, amount, reason } = req.body
+    const order = orders.find(item => item.orderNo === orderNo)
+    if (!order) return fail(res, '订单不存在', 404)
+    if (Number(order.payStatus) !== 1) return fail(res, '仅已支付订单可申请退款', 400)
+    const pending = refunds.find(item => item.orderNo === orderNo && [0, 1].includes(Number(item.refundStatus)))
+    if (pending) return fail(res, '该订单已有进行中的退款申请', 400)
+    const record = payRecords.find(item => item.orderNo === orderNo && Number(item.payStatus) === 2) || payRecords.find(item => item.orderNo === orderNo)
+    if (!record) return fail(res, '支付单不存在', 404)
+    const applyAmount = amount === undefined || amount === null || amount === ''
+      ? Number(order.payAmount)
+      : Math.min(Number(order.payAmount), Math.max(0.01, Number(amount)))
+    const refund = {
+      id: nextId(refunds),
+      refundNo: `REF${Date.now()}`,
+      payNo: record.payNo,
+      orderNo,
+      tenantId: order.tenantId,
+      refundAmount: roundMoney(applyAmount),
+      payAmount: record.payAmount,
+      refundStatus: 0,
+      auditStatus: 0,
+      auditResult: 0,
+      refundReason: reason || '用户申请退款',
+      thirdRefundNo: '',
+      applyUserId: order.userId,
+      refundTime: null,
+      createTime: fmt(new Date())
+    }
+    refunds.unshift(refund)
+    order.orderStatus = 5
+    order.payStatus = 1
+    order.remark = '用户申请退款，等待商户审核'
+    ok(res, refund, '退款申请已提交，等待商户审核')
   })
 
   app.put('/api/order/:id/complete', (req, res) => {
@@ -385,6 +454,7 @@ module.exports = function registerTradeRoutes(app, jwt, SECRET_KEY) {
     if (!order) return fail(res, '订单不存在', 404)
     order.orderStatus = 3
     order.completeTime = fmt(new Date())
+    distributionService.onOrderCompleted(order)
     ok(res, null, '订单已完成')
   })
 

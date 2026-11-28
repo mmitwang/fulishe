@@ -2,7 +2,10 @@
   <div class="home-page">
     <van-nav-bar fixed class="nav-bar">
       <template #title>
-        <div class="nav-title"><span class="brand">福礼社</span><span class="slogan">企业福利数智平台</span></div>
+        <div class="nav-title">
+          <div class="title-row"><span class="logo-mark">福</span><span class="brand">福礼社</span></div>
+          <span class="slogan">企业福利数智平台</span>
+        </div>
       </template>
       <template #right>
         <van-icon name="qr" size="20" @click="goTrace()" />
@@ -42,6 +45,30 @@
           </div>
           <div class="coupon-name">{{ c.templateName }}</div>
           <div class="coupon-cond">满 {{ c.minAmount }} 可用</div>
+        </div>
+      </div>
+
+      <div class="section" v-if="data.newProducts?.length">
+        <div class="section-title">
+          <span class="title-text">新品上架</span>
+          <span class="more" @click="router.push('/category')">查看更多 <van-icon name="arrow" /></span>
+        </div>
+        <div class="product-grid">
+          <div class="product-item" v-for="item in data.newProducts" :key="item.id" @click="goDetail(item.id)">
+            <div class="image-wrap">
+              <img :src="item.image" alt="" class="product-image" loading="lazy" />
+              <span class="new-tag">新品</span>
+            </div>
+            <div class="product-name">{{ item.spuName }}</div>
+            <div class="product-tags">
+              <span v-for="t in (item.tags || []).slice(0, 2)" :key="t" class="tag">{{ t }}</span>
+            </div>
+            <div class="product-price">
+              <span class="price-symbol">¥</span>
+              <span class="price-value">{{ item.sellPrice }}</span>
+              <span class="original">¥{{ item.originalPrice }}</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -108,10 +135,29 @@ const goTrace = () => router.push('/trace')
     flex-direction: column;
     align-items: center;
     line-height: 1.1;
+    .title-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .logo-mark {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #c8102e, #f0556b);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      font-family: 'STKaiti', 'KaiTi', 'Songti SC', 'SimSun', serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
     .brand {
       font-size: 18px;
       font-weight: 800;
-      color: #1f2b52;
+      color: #7a0c1e;
       letter-spacing: 2px;
     }
     .slogan {
@@ -172,7 +218,7 @@ const goTrace = () => router.push('/trace')
   margin: 10px 12px;
   padding: 14px;
   border-radius: 12px;
-  background: linear-gradient(120deg, #1f2b52, #2f5fd0);
+  background: linear-gradient(120deg, #7a0c1e, #c8102e);
   color: #fff;
   display: flex;
   align-items: center;
@@ -238,7 +284,7 @@ const goTrace = () => router.push('/trace')
     .title-text {
       font-size: 16px;
       font-weight: 700;
-      color: #1f2b52;
+      color: #7a0c1e;
     }
     .more {
       font-size: 11px;
@@ -254,7 +300,7 @@ const goTrace = () => router.push('/trace')
       background: #fff;
       border-radius: 10px;
       overflow: hidden;
-      box-shadow: 0 2px 10px rgba(31, 43, 82, 0.06);
+      box-shadow: 0 2px 10px rgba(122, 12, 30, 0.06);
       .image-wrap {
         position: relative;
         .product-image {
@@ -272,6 +318,17 @@ const goTrace = () => router.push('/trace')
           background: rgba(0, 0, 0, 0.42);
           padding: 2px 6px;
           border-radius: 8px;
+        }
+        .new-tag {
+          position: absolute;
+          left: 8px;
+          top: 8px;
+          font-size: 10px;
+          color: #fff;
+          background: linear-gradient(135deg, #ff6034, #ee0a24);
+          padding: 2px 8px;
+          border-radius: 8px;
+          font-weight: 600;
         }
       }
       .product-name {
@@ -291,8 +348,8 @@ const goTrace = () => router.push('/trace')
         gap: 4px;
         .tag {
           font-size: 9px;
-          color: #2f5fd0;
-          background: #eef3ff;
+          color: #c8102e;
+          background: #fdeef0;
           padding: 1px 5px;
           border-radius: 4px;
         }

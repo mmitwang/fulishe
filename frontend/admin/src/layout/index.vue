@@ -2,7 +2,7 @@
   <el-container class="layout-container">
     <el-aside :width="isCollapse ? '72px' : '232px'" class="aside">
       <div class="logo">
-        <div class="logo-mark"><el-icon><Present /></el-icon></div>
+        <div class="logo-mark">福</div>
         <div v-show="!isCollapse" class="logo-text">
           <span class="name">福礼社</span>
           <span class="sub">企业福利数智平台</span>
@@ -65,7 +65,7 @@
         </div>
         <div class="header-right">
           <el-tooltip content="访问 H5 商城" placement="bottom">
-            <a class="h5-link" href="http://localhost:3001" target="_blank">
+            <a class="h5-link" :href="H5_BASE_URL" target="_blank">
               <el-icon><Cellphone /></el-icon>
               H5 商城
             </a>
@@ -112,6 +112,7 @@ import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { H5_BASE_URL } from '@/config'
 
 interface MenuRoute {
   path: string
@@ -191,7 +192,8 @@ const switchAccount = async () => {
 
 const handleCommand = async (command: string) => {
   if (command === 'profile') {
-    await router.push(authStore.isPlatformAdmin ? '/dashboard' : '/merchant/profile')
+    const isMerchantAdmin = authStore.userInfo?.roleCodes?.includes('merchant_admin')
+    await router.push(isMerchantAdmin ? '/merchant/profile' : authStore.homePath)
     return
   }
   if (command === 'switch' || command === 'logout') {
@@ -213,7 +215,7 @@ const handleCommand = async (command: string) => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 2px 0 12px rgba(31, 43, 82, 0.04);
+  box-shadow: 2px 0 12px rgba(122, 12, 30, 0.04);
   z-index: 10;
 
   .logo {
@@ -228,15 +230,17 @@ const handleCommand = async (command: string) => {
     .logo-mark {
       width: 38px;
       height: 38px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #2f5fd0, #38b6ff);
+      border-radius: 50%;
+      background: linear-gradient(135deg, #c8102e, #f0556b);
       color: #fff;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 20px;
+      font-weight: 700;
+      font-family: 'STKaiti', 'KaiTi', 'Songti SC', 'SimSun', serif;
       flex-shrink: 0;
-      box-shadow: 0 6px 14px rgba(47, 95, 208, 0.3);
+      box-shadow: 0 6px 14px rgba(200, 16, 46, 0.3);
     }
 
     .logo-text {
@@ -246,7 +250,7 @@ const handleCommand = async (command: string) => {
       .name {
         font-size: 18px;
         font-weight: 800;
-        color: #1f2b52;
+        color: #7a0c1e;
         letter-spacing: 1px;
       }
       .sub {
@@ -277,13 +281,13 @@ const handleCommand = async (command: string) => {
     :deep(.el-menu-item:hover),
     :deep(.el-sub-menu__title:hover) {
       background: #f4f7ff;
-      color: #2f5fd0;
+      color: #c8102e;
     }
     :deep(.el-menu-item.is-active) {
-      background: linear-gradient(90deg, #2f5fd0, #38b6ff);
+      background: linear-gradient(90deg, #c8102e, #f0556b);
       color: #fff;
       font-weight: 600;
-      box-shadow: 0 6px 14px rgba(47, 95, 208, 0.24);
+      box-shadow: 0 6px 14px rgba(200, 16, 46, 0.24);
     }
     :deep(.el-sub-menu .el-menu) {
       background: transparent;
@@ -341,7 +345,7 @@ const handleCommand = async (command: string) => {
       cursor: pointer;
       color: #4b5563;
       &:hover {
-        color: #2f5fd0;
+        color: #c8102e;
       }
     }
   }
@@ -356,7 +360,7 @@ const handleCommand = async (command: string) => {
       align-items: center;
       gap: 6px;
       font-size: 13px;
-      color: #2f5fd0;
+      color: #c8102e;
       text-decoration: none;
       padding: 6px 12px;
       border-radius: 8px;
@@ -379,7 +383,7 @@ const handleCommand = async (command: string) => {
       cursor: pointer;
 
       .avatar {
-        background: linear-gradient(135deg, #2f5fd0, #38b6ff);
+        background: linear-gradient(135deg, #c8102e, #f0556b);
         font-weight: 600;
       }
 

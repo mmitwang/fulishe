@@ -119,7 +119,7 @@ onMounted(async () => {
     position: relative;
     &.active {
       background: #fff;
-      color: #2f5fd0;
+      color: #c8102e;
       font-weight: 600;
       &::before {
         content: '';
@@ -129,7 +129,7 @@ onMounted(async () => {
         bottom: 12px;
         width: 3px;
         border-radius: 2px;
-        background: #2f5fd0;
+        background: #c8102e;
       }
     }
   }
@@ -177,8 +177,8 @@ onMounted(async () => {
       margin-top: 5px;
       .tag {
         font-size: 9px;
-        color: #2f5fd0;
-        background: #eef3ff;
+        color: #c8102e;
+        background: #fdeef0;
         padding: 1px 5px;
         border-radius: 4px;
       }
@@ -197,7 +197,7 @@ onMounted(async () => {
         }
       }
       .add {
-        background: #2f5fd0;
+        background: #c8102e;
         color: #fff;
         border-radius: 50%;
         padding: 5px;

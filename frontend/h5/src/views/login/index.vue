@@ -1,7 +1,7 @@
 <template>
   <div class="login-page">
     <div class="brand">
-      <div class="logo"><van-icon name="gift-o" /></div>
+      <div class="logo">福</div>
       <h1>福礼社</h1>
       <p>企业福利数智平台 · 区块链溯源</p>
     </div>
@@ -74,7 +74,7 @@ onMounted(async () => {
 <style lang="scss" scoped>
 .login-page {
   min-height: 100vh;
-  background: linear-gradient(160deg, #1f2b52 0%, #2f5fd0 45%, #38b6ff 100%);
+  background: linear-gradient(160deg, #7a0c1e 0%, #c8102e 45%, #f0556b 100%);
   padding: 60px 20px 30px;
   .brand {
     text-align: center;
@@ -83,13 +83,15 @@ onMounted(async () => {
     .logo {
       width: 64px;
       height: 64px;
-      border-radius: 20px;
+      border-radius: 50%;
       background: rgba(255, 255, 255, 0.16);
       display: flex;
       align-items: center;
       justify-content: center;
       margin: 0 auto 12px;
       font-size: 32px;
+      font-weight: 700;
+      font-family: 'STKaiti', 'KaiTi', 'Songti SC', 'SimSun', serif;
     }
     h1 {
       margin: 0;
@@ -109,7 +111,7 @@ onMounted(async () => {
     .form-title {
       font-size: 16px;
       font-weight: 700;
-      color: #1f2b52;
+      color: #7a0c1e;
       margin-bottom: 14px;
       padding-left: 6px;
     }
@@ -129,8 +131,8 @@ onMounted(async () => {
         border-radius: 10px;
         padding: 8px 10px;
         &.active {
-          border-color: #2f5fd0;
-          background: #f4f8ff;
+          border-color: #c8102e;
+          background: #fdf3f4;
         }
         .name {
           font-size: 12px;
@@ -145,7 +147,7 @@ onMounted(async () => {
     }
     .login-btn {
       margin-top: 22px;
-      background: linear-gradient(90deg, #2f5fd0, #38b6ff);
+      background: linear-gradient(90deg, #c8102e, #f0556b);
       border: none;
     }
     .tips {

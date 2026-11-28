@@ -36,7 +36,8 @@
       <div class="card summary">
         <div class="row"><span>商品金额</span><span>¥{{ totalAmount }}</span></div>
         <div class="row"><span>运费</span><span class="free">免运费</span></div>
-        <div class="row"><span>优惠</span><span class="discount">-¥{{ discountAmount }}</span></div>
+        <div class="row" v-if="promotion"><span>{{ promotion.name || '全场满减' }}</span><span class="discount">满 {{ promotion.thresholdAmount }} 减 {{ promotion.discountAmount }}</span></div>
+        <div class="row"><span>优惠合计</span><span class="discount">-¥{{ discountAmount }}</span></div>
         <div class="row total"><span>实付金额</span><span class="amount">¥{{ payAmount }}</span></div>
       </div>
     </div>
@@ -80,6 +81,7 @@ import request from '@/utils/request'
 const router = useRouter()
 const items = ref<any[]>([])
 const coupons = ref<any[]>([])
+const promotionRules = ref<any[]>([])
 const selectedCoupon = ref<any>(null)
 const showCoupon = ref(false)
 const submitting = ref(false)
@@ -91,20 +93,39 @@ const form = reactive({
   remark: ''
 })
 
-const totalAmount = computed(() => items.value.reduce((s, i) => s + i.price * i.quantity, 0))
-const discountAmount = computed(() => {
+const totalAmount = computed(() => Number(items.value.reduce((s, i) => s + i.price * i.quantity, 0).toFixed(2)))
+const promotion = computed(() => [...promotionRules.value]
+  .sort((a, b) => a.thresholdAmount - b.thresholdAmount)
+  .filter(rule => totalAmount.value >= rule.thresholdAmount)
+  .pop() || null)
+const couponDiscountAmount = computed(() => {
   if (!selectedCoupon.value) return 0
   const c = selectedCoupon.value
   if (c.couponType === 2) return Math.round(totalAmount.value * (1 - c.faceValue / 100))
   return c.faceValue
 })
-const payAmount = computed(() => Math.max(1, totalAmount.value - discountAmount.value))
+const discountAmount = computed(() => Number(((promotion.value?.discountAmount || 0) + couponDiscountAmount.value).toFixed(2)))
+const payAmount = computed(() => Math.max(1, Number((totalAmount.value - discountAmount.value).toFixed(2))))
 const usableCoupons = computed(() => coupons.value.filter(c => c.status === 0 && totalAmount.value >= c.minAmount))
-const couponText = computed(() => selectedCoupon.value ? `-¥${discountAmount.value}` : (usableCoupons.value.length ? `${usableCoupons.value.length} 张可用` : '暂无可用'))
+const couponText = computed(() => selectedCoupon.value ? `-¥${couponDiscountAmount.value}` : (usableCoupons.value.length ? `${usableCoupons.value.length} 张可用` : '暂无可用'))
 
 const choose = (c: any) => {
   selectedCoupon.value = c
   showCoupon.value = false
+}
+
+const shareIdFor = (spuId: number) => {
+  if (!spuId) return undefined
+  const key = `distributionShare:${spuId}`
+  try {
+    const saved = JSON.parse(localStorage.getItem(key) || 'null')
+    const expireAt = new Date(String(saved?.expireTime || '').replace(' ', 'T')).getTime()
+    if (saved?.shareId && expireAt >= Date.now()) return saved.shareId
+  } catch {
+    // 本地归因损坏时仅忽略分享，不影响正常下单。
+  }
+  localStorage.removeItem(key)
+  return undefined
 }
 
 const submit = async () => {
@@ -113,12 +134,13 @@ const submit = async () => {
   try {
     const res = await request.post('/order/create', {
       userId: Number(localStorage.getItem('userId') || 2),
-      items: items.value.map(i => ({ skuId: i.skuId, quantity: i.quantity })),
+      items: items.value.map(i => ({ skuId: i.skuId, quantity: i.quantity, shareId: shareIdFor(Number(i.spuId)) })),
       receiver: form.receiver,
       mobile: form.mobile,
       address: form.address,
       remark: form.remark,
-      couponId: selectedCoupon.value?.id
+      couponId: selectedCoupon.value?.id,
+      promotionId: promotion.value?.id ?? 0
     })
     sessionStorage.removeItem('checkoutItems')
     router.replace(`/pay?orderNo=${res.orderNo}&amount=${res.payAmount}`)
@@ -134,7 +156,12 @@ onMounted(async () => {
     router.replace('/cart')
     return
   }
-  coupons.value = await request.get('/coupon/my', { params: { userId: Number(localStorage.getItem('userId') || 2) } })
+  const [couponData, promotionData] = await Promise.all([
+    request.get('/coupon/my', { params: { userId: Number(localStorage.getItem('userId') || 2) } }),
+    request.get('/h5/promotions/full-reduction')
+  ])
+  coupons.value = couponData
+  promotionRules.value = promotionData.rules || []
 })
 </script>
 
@@ -161,13 +188,13 @@ onMounted(async () => {
     align-items: center;
     gap: 6px;
     font-weight: 600;
-    color: #1f2b52;
+    color: #7a0c1e;
     padding: 12px 16px 4px;
   }
 }
 .card-title {
   font-weight: 600;
-  color: #1f2b52;
+  color: #7a0c1e;
   padding: 12px 16px 4px;
 }
 .product-item {
@@ -247,7 +274,7 @@ onMounted(async () => {
   align-items: center;
   padding: 0 14px;
   gap: 12px;
-  box-shadow: 0 -2px 10px rgba(31, 43, 82, 0.06);
+  box-shadow: 0 -2px 10px rgba(122, 12, 30, 0.06);
   .total {
     flex: 1;
     font-size: 13px;

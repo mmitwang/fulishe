@@ -102,7 +102,7 @@
           <template #header>
             <div class="card-head">
               <span>链上动态</span>
-              <el-link type="primary" :underline="false" @click="$router.push('/chain/tx')">全部</el-link>
+              <el-link type="primary" underline="never" @click="$router.push('/chain/tx')">全部</el-link>
             </div>
           </template>
           <div class="activity-list">
@@ -122,7 +122,7 @@
           <template #header>
             <div class="card-head">
               <span>库存预警</span>
-              <el-link type="primary" :underline="false" @click="$router.push('/supply/inventory')">处理</el-link>
+              <el-link type="primary" underline="never" @click="$router.push('/supply/inventory')">处理</el-link>
             </div>
           </template>
           <div class="alert-list">
@@ -148,7 +148,7 @@
           <template #header>
             <div class="card-head">
               <span>最新订单</span>
-              <el-link type="primary" :underline="false" @click="$router.push('/order/list')">查看全部</el-link>
+              <el-link type="primary" underline="never" @click="$router.push('/order/list')">查看全部</el-link>
             </div>
           </template>
           <el-table :data="data.recentOrders" size="small">
@@ -236,13 +236,15 @@ const txTypeColor = (t: string) => ({
   ORDER_PAY: 'primary',
   TRACE_ANCHOR: 'success'
 } as Record<string, TagType>)[t] || 'info'
-const orderText = (s: number) => ({ 0: '待支付', 1: '已支付', 2: '已发货', 3: '已完成', 4: '已取消' }[s] || '未知')
+const orderText = (s: number) => ({ 0: '待支付', 1: '已支付', 2: '已发货', 3: '已完成', 4: '已取消', 5: '售后中', 6: '已退款' }[s] || '未知')
 const orderTag = (s: number) => ({
   0: 'warning',
   1: 'success',
   2: 'primary',
   3: 'success',
-  4: 'danger'
+  4: 'danger',
+  5: 'warning',
+  6: 'info'
 } as Record<number, TagType>)[s] || 'info'
 
 const renderCharts = () => {
@@ -345,8 +347,8 @@ onBeforeUnmount(() => {
     border-radius: 16px;
     margin-bottom: 16px;
     color: #fff;
-    background: linear-gradient(120deg, #1f2b52 0%, #2f5fd0 52%, #38b6ff 100%);
-    box-shadow: 0 14px 34px rgba(31, 43, 82, 0.26);
+    background: linear-gradient(120deg, #7a0c1e 0%, #c8102e 52%, #f0556b 100%);
+    box-shadow: 0 14px 34px rgba(122, 12, 30, 0.26);
     h2 {
       margin: 0 0 8px;
       font-size: 24px;

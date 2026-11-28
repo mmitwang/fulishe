@@ -121,6 +121,18 @@ const routes: RouteRecordRaw[] = [
             name: 'PayConfig',
             component: () => import('@/views/pay/config/index.vue'),
             meta: { title: '支付配置', icon: 'Setting', requiresAuth: true, permission: 'pay:config' }
+          },
+          {
+            path: 'invoice',
+            name: 'PayInvoice',
+            component: () => import('@/views/pay/invoice/index.vue'),
+            meta: { title: '发票管理', icon: 'Tickets', requiresAuth: true, permission: 'pay:invoice' }
+          },
+          {
+            path: 'commission',
+            name: 'PayCommission',
+            component: () => import('@/views/pay/commission/index.vue'),
+            meta: { title: '平台抽佣', icon: 'Money', requiresAuth: true, permission: 'pay:commission' }
           }
         ]
       },
@@ -189,6 +201,72 @@ const routes: RouteRecordRaw[] = [
         ]
       },
       {
+        path: 'promotion',
+        name: 'Promotion',
+        redirect: '/promotion/full-reduction',
+        meta: { title: '营销管理', icon: 'Present', requiresAuth: true },
+        children: [
+          {
+            path: 'full-reduction',
+            name: 'PromotionFullReduction',
+            component: () => import('@/views/promotion/full-reduction/index.vue'),
+            meta: { title: '满减促销', icon: 'Discount', requiresAuth: true, permission: 'promotion:fullreduction' }
+          }
+        ]
+      },
+      {
+        path: 'distribution',
+        name: 'Distribution',
+        redirect: '/distribution/rules',
+        meta: { title: '分销管理', icon: 'Share', requiresAuth: true },
+        children: [
+          {
+            path: 'rules',
+            name: 'DistributionRules',
+            component: () => import('@/views/distribution/rules/index.vue'),
+            meta: { title: '佣金规则', icon: 'SetUp', requiresAuth: true, permission: 'distribution:rule' }
+          },
+          {
+            path: 'distributors',
+            name: 'DistributionDistributors',
+            component: () => import('@/views/distribution/distributors/index.vue'),
+            meta: { title: '分销商管理', icon: 'User', requiresAuth: true, permission: 'distribution:distributor' }
+          },
+          {
+            path: 'orders',
+            name: 'DistributionOrders',
+            component: () => import('@/views/distribution/orders/index.vue'),
+            meta: { title: '推广订单', icon: 'Document', requiresAuth: true, permission: 'distribution:order' }
+          }
+        ]
+      },
+      {
+        path: 'distributor',
+        name: 'DistributorWorkbench',
+        redirect: '/distributor/selection',
+        meta: { title: '分销商工作台', icon: 'Promotion', requiresAuth: true },
+        children: [
+          {
+            path: 'selection',
+            name: 'DistributorSelection',
+            component: () => import('@/views/distributor/selection/index.vue'),
+            meta: { title: '选品中心', icon: 'ShoppingBag', requiresAuth: true, permission: 'distributor:selection' }
+          },
+          {
+            path: 'shares',
+            name: 'DistributorShares',
+            component: () => import('@/views/distributor/shares/index.vue'),
+            meta: { title: '我的分享', icon: 'Share', requiresAuth: true, permission: 'distributor:share' }
+          },
+          {
+            path: 'orders',
+            name: 'DistributorOrders',
+            component: () => import('@/views/distribution/orders/index.vue'),
+            meta: { title: '推广与佣金', icon: 'Money', requiresAuth: true, permission: 'distributor:order' }
+          }
+        ]
+      },
+      {
         path: 'system',
         name: 'System',
         redirect: '/system/user',
@@ -223,6 +301,12 @@ const routes: RouteRecordRaw[] = [
             name: 'Tenant',
             component: () => import('@/views/system/tenant/index.vue'),
             meta: { title: '租户管理', icon: 'Building', requiresAuth: true, permission: 'system:tenant' }
+          },
+          {
+            path: 'backup',
+            name: 'SystemBackup',
+            component: () => import('@/views/system/backup/index.vue'),
+            meta: { title: '数据备份', icon: 'FolderOpened', requiresAuth: true, permission: 'system:backup' }
           }
         ]
       },

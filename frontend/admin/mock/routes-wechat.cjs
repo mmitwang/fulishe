@@ -25,6 +25,8 @@ const normalizeChannel = channel => {
 const identityFromCode = (code, channel) => {
   const raw = String(code || '').trim()
   if (!/^mock-/.test(raw)) return null
+  // mock-code-* 只能由 consumeCode 一次性消费，不能回退成可重复使用的演示身份。
+  if (/^mock-code-/.test(raw)) return null
   const match = raw.match(/(\d+)$/)
   const userId = match ? Number(match[1]) : 2
   const user = users.find(u => u.id === userId)
@@ -133,6 +135,7 @@ module.exports = function registerWechatRoutes(app, jwt, SECRET_KEY) {
     if (!identity) return fail(res, channel === 'weapp' ? '小程序登录凭证无效' : '网页授权码无效或已过期')
     const user = users.find(u => u.id === identity.userId)
     if (!user) return fail(res, '微信账号未绑定福礼社用户')
+    if (Number(user.status) !== 1) return fail(res, '账号已禁用，请联系管理员', 403)
     const token = signToken(user)
     ok(res, {
       token,

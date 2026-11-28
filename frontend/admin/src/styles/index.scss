@@ -1,3 +1,14 @@
+// 中国红主题：覆盖 Element Plus 默认蓝，含派生色（hover/active/禁用背景）
+:root {
+  --el-color-primary: #c8102e;
+  --el-color-primary-light-3: #d8586d;
+  --el-color-primary-light-5: #e38897;
+  --el-color-primary-light-7: #efb7c0;
+  --el-color-primary-light-8: #f4cfd5;
+  --el-color-primary-light-9: #fae7eb;
+  --el-color-primary-dark-2: #a00d25;
+}
+
 * {
   margin: 0;
   padding: 0;

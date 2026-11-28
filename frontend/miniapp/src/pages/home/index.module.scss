@@ -18,6 +18,27 @@
   justify-content: space-between;
 }
 
+.brandLeft {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.brandMark {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: 2rpx solid rgba(255, 255, 255, 0.55);
+  color: $color-text-white;
+  font-size: 34rpx;
+  font-weight: $font-weight-bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
 .brand {
   display: flex;
   flex-direction: column;
